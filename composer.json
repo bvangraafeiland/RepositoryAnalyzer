@@ -1,0 +1,10 @@
+{
+    "autoload": {
+        "psr-4": { "RepoFinder\\": "src/php/" }
+    },
+
+    "require": {
+        "knplabs/github-api": "^1.5",
+        "vlucas/phpdotenv": "^2.2"
+    }
+}

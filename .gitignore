@@ -1,0 +1,6 @@
+.env
+tmp
+vendor
+
+*.py[cod]
+*$py.class
