@@ -5,6 +5,7 @@
 
     "require": {
         "knplabs/github-api": "^1.5",
-        "vlucas/phpdotenv": "^2.2"
+        "vlucas/phpdotenv": "^2.2",
+        "nesbot/carbon": "^1.21"
     }
 }

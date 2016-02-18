@@ -3,6 +3,8 @@ require __DIR__ . '/vendor/autoload.php';
 require __DIR__ . '/bootstrap.php';
 require __DIR__ . '/helpers.php';
 
+use Carbon\Carbon;
+
 $github = new Github\Client(new Github\HttpClient\CachedHttpClient(array('cache_dir' => __DIR__ . '/tmp/github-api-cache')));
 $github->authenticate(getenv('GITHUB_TOKEN'), null, Github\Client::AUTH_HTTP_TOKEN);
 
@@ -23,4 +25,4 @@ foreach ($projects as $project) {
     echo $repoInfo['stargazers_count'] . PHP_EOL;
 }
 
-file_put_contents('pylint_filtered.json', json_encode($candidates));
+file_put_contents('pylint_filtered.json', json_encode($candidates, JSON_PRETTY_PRINT));
