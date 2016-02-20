@@ -1,11 +1,13 @@
 {
     "autoload": {
-        "psr-4": { "RepoFinder\\": "src/php/" }
+        "psr-4": { "RepoFinder\\": "src/" }
     },
 
     "require": {
-        "knplabs/github-api": "^1.5",
         "vlucas/phpdotenv": "^2.2",
-        "nesbot/carbon": "^1.21"
+        "nesbot/carbon": "^1.21",
+        "illuminate/database": "^5.2",
+        "symfony/console": "^3.0",
+        "guzzlehttp/guzzle": "~6.0"
     }
 }

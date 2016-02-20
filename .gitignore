@@ -1,6 +1,5 @@
 .env
-tmp
-vendor
 
-*.py[cod]
-*$py.class
+/vendor
+/.idea
+/.vagrant
