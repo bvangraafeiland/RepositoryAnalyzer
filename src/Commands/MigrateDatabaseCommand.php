@@ -1,7 +1,8 @@
 <?php
-namespace RepoFinder\Commands;
+namespace App\Commands;
 
 use Illuminate\Database\Schema\Blueprint;
+use App\AnalysisTool;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -27,13 +28,17 @@ class MigrateDatabaseCommand extends Command
         $output->writeln("Creating repos table");
 
         DB::schema()->create('repositories', function (Blueprint $table) {
-            $table->integer('id')->unsigned()->unique();
-            $table->string('full_name');
-            $table->string('html_url');
+            $table->integer('id')->unsigned()->primary();
+            $table->string('full_name')->index();
+            $table->string('default_branch');
             $table->mediumInteger('stargazers_count')->unsigned();
+            $table->boolean('has_issues');
+            $table->mediumInteger('open_issues_count')->unsigned()->nullable();
             $table->dateTime('created_at');
             $table->dateTime('pushed_at');
-            $table->string('language');
+            $table->string('language')->index();
+            $table->boolean('uses_asats')->index()->nullable();
+            $table->boolean('uses_travis')->index()->nullable();
             $table->boolean('asat_in_travis')->nullable();
             $table->boolean('asat_in_build_tool')->nullable();
         });
@@ -41,8 +46,12 @@ class MigrateDatabaseCommand extends Command
         $output->writeln("Creating tools table");
         DB::schema()->create('analysis_tools', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('name');
+            $table->string('name')->unique();
         });
+
+        foreach (['checkstyle', 'pmd', 'jshint', 'jscs', 'eslint', 'rubocop', 'pylint'] as $tool) {
+            AnalysisTool::create(['name' => $tool]);
+        }
 
         $output->writeln("Creating pivot table");
         DB::schema()->create('analysis_tool_repository', function (Blueprint $table) {
@@ -51,16 +60,7 @@ class MigrateDatabaseCommand extends Command
             $table->foreign('repository_id')->references('id')->on('repositories')->onDelete('cascade');
             $table->integer('analysis_tool_id')->unsigned()->index();
             $table->foreign('analysis_tool_id')->references('id')->on('analysis_tools')->onDelete('cascade');
-        });
-
-        $output->writeln("Creating completed jobs table");
-        DB::schema()->dropIfExists('completed_jobs');
-        DB::schema()->create('completed_jobs', function (Blueprint $table) {
-            $table->increments('id');
-            $table->integer('analysis_tool_id')->unsigned()->index();
-            $table->date('created_from');
-            $table->date('created_until');
-            $table->smallInteger('last_page')->unsigned();
+            $table->boolean('config_file_present')->index();
         });
     }
 

@@ -1,6 +1,6 @@
 {
     "autoload": {
-        "psr-4": { "RepoFinder\\": "src/" }
+        "psr-4": { "App\\": "src/" }
     },
 
     "require": {
@@ -8,6 +8,7 @@
         "nesbot/carbon": "^1.21",
         "illuminate/database": "^5.2",
         "symfony/console": "^3.0",
-        "guzzlehttp/guzzle": "~6.0"
+        "guzzlehttp/guzzle": "~6.0",
+        "psy/psysh": "^0.7.0"
     }
 }

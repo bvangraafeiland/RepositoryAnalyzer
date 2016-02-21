@@ -1,5 +1,5 @@
 <?php
-namespace RepoFinder\Commands;
+namespace App\Commands;
 
 use Carbon\Carbon;
 use Symfony\Component\Console\Input\InputInterface;

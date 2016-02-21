@@ -1,5 +1,5 @@
 <?php
-namespace RepoFinder;
+namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,4 +12,5 @@ use Illuminate\Database\Eloquent\Model;
 class AnalysisTool extends Model
 {
     protected $fillable = ['name'];
+    public $timestamps = false;
 }

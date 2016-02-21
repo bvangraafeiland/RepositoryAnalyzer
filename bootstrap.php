@@ -1,11 +1,12 @@
 <?php
-use RepoFinder\Commands\AutoCollectCommand;
-use RepoFinder\Commands\CheckRateLimitCommand;
-use RepoFinder\Commands\MigrateDatabaseCommand;
-use RepoFinder\Commands\SearchRepositoriesCommand;
+use App\Commands\AutoCollectCommand;
+use App\Commands\CheckASATUsageCommand;
+use App\Commands\CheckRateLimitCommand;
+use App\Commands\CheckTravisUsageCommand;
+use App\Commands\MigrateDatabaseCommand;
+use App\Commands\SearchRepositoriesCommand;
+use App\Commands\TinkerCommand;
 use Symfony\Component\Console\Application;
-
-require_once __DIR__ . '/vendor/autoload.php';
 
 $dotenv = new Dotenv\Dotenv(__DIR__);
 $dotenv->load();
@@ -29,5 +30,8 @@ $application->addCommands([
     new SearchRepositoriesCommand,
     new MigrateDatabaseCommand,
     new CheckRateLimitCommand,
-    new AutoCollectCommand
+    new AutoCollectCommand,
+    new CheckASATUsageCommand,
+    new CheckTravisUsageCommand,
+    new TinkerCommand
 ]);

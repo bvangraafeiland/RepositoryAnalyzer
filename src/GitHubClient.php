@@ -1,6 +1,7 @@
 <?php
-namespace RepoFinder;
+namespace App;
 
+use App\Exceptions\GitHubException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use Psr\Http\Message\ResponseInterface;
@@ -53,26 +54,44 @@ class GitHubClient
 
     public function searchRepositories($query)
     {
-        return $this->asArray('/search/repositories', [
+        $firstChunk = $this->asArray('/search/repositories', [
             'query' => ['q' => $query, 'per_page' => 100]
         ]);
+        $numResults = $firstChunk['total_count'];
+        $this->output->writeln("<comment>$numResults found.</comment>");
+
+        if ($numResults > 1000 || $firstChunk['incomplete_results']) {
+            throw new GitHubException('Too many or incomplete results!');
+        };
+
+        $remainingResults = $this->followPages();
+
+        return array_merge($firstChunk['items'], $remainingResults);
     }
 
-    public function getAllPages(callable $resultHandler)
+    protected function followPages()
     {
-        $nextLink = $this->getNextLink();
-        while ($nextLink) {
-            $nextResult = $this->get($nextLink);
-            $resultHandler($nextResult);
+        $pageCount = $this->totalPageCount();
+        if ($pageCount == 1)
+            return [];
 
-            $nextLink = $this->getNextLink();
+        $currentPage = 2;
+        $results = [];
+        $nextPage = $this->getNextPageURL();
+        while ($nextPage) {
+            $this->output->writeln("Fetching page <comment>$currentPage of $pageCount</comment>");
+            $results = array_merge($results, $this->get($nextPage)['items']);
+            $nextPage = $this->getNextPageURL();
+            $currentPage++;
         }
+
+        return $results;
     }
 
     protected function asArray($uri, $options = [], $method = 'get')
     {
         $this->lastResponse = $this->waitIfLimitExceeded(function () use ($method, $uri, $options) {
-            $this->output->writeln('Requesting ' . $uri);
+            $this->output->writeln("$method $uri");
             return $this->github->request($method, $uri, $options);
         });
 
@@ -102,7 +121,7 @@ class GitHubClient
     /**
      * @return string
      */
-    protected function getNextLink()
+    protected function getNextPageURL()
     {
         $header = $this->lastResponse->getHeader('Link');
         if ($header) {
@@ -111,5 +130,18 @@ class GitHubClient
             return array_get($matches, 1);
         }
         return null;
+    }
+
+    protected function totalPageCount()
+    {
+        $header = $this->lastResponse->getHeader('Link');
+
+        if ($header) {
+            preg_match('%<.+page=(\d+)>; rel="last"%i', trim($header[0], ','), $matches);
+
+            return (int) array_get($matches, 1, 1);
+        }
+
+        return 1;
     }
 }

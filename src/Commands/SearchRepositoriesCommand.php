@@ -1,7 +1,7 @@
 <?php
-namespace RepoFinder\Commands;
+namespace App\Commands;
 
-use RepoFinder\Repository;
+use App\Repository;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -17,7 +17,7 @@ class SearchRepositoriesCommand extends GithubApiCommand
 {
     protected function configure()
     {
-        $this->setName('search:repositories')
+        $this->setName('search')
             ->setDescription('Search for repositories on GitHub')
             ->addArgument('language', InputArgument::REQUIRED, "Filter repositories based on language")
             ->addArgument('year', InputArgument::REQUIRED, "Search for repositories created in this year")
@@ -35,25 +35,14 @@ class SearchRepositoriesCommand extends GithubApiCommand
         $output->writeln("Search query: <info>'$queryString'</info>");
 
         // int total_count, bool incomplete_results, array items
-        $result = $this->github->searchRepositories($queryString);
-
-        $numResults = $result['total_count'];
-        $output->writeln("<comment>$numResults found.</comment>");
-
-        if ($numResults > 1000 || $result['incomplete_results']) {
-            $output->writeln('<error>Too many or incomplete results!</error>');
-            exit(1);
-        };
-
-        $this->handleResult($result);
-
-        $this->github->getAllPages([$this, 'handleResult']);
+        $results = $this->github->searchRepositories($queryString);
+        $this->storeRepositories($results);
     }
 
-    public function handleResult(array $result)
+    protected function storeRepositories(array $items)
     {
         // save to db
-        foreach ($result['items'] as $item) {
+        foreach ($items as $item) {
             if (! Repository::query()->find($item['id']))
                 Repository::create($item);
         }

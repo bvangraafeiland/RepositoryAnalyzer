@@ -1,5 +1,5 @@
 <?php
-namespace RepoFinder\Commands;
+namespace App\Commands;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
