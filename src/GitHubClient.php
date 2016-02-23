@@ -69,15 +69,19 @@ class GitHubClient
         return array_merge($firstChunk['items'], $remainingResults);
     }
 
-    protected function followPages()
+    protected function followPages($startingAt = null, $pageCount = null)
     {
-        $pageCount = $this->totalPageCount();
+        $startingAt = $startingAt ?: $this->getNextPageURL();
+        $pageCount = $pageCount ?: $this->totalPageCount();
+
         if ($pageCount == 1)
             return [];
 
-        $currentPage = 2;
+        $currentPage = $this->getPageNumberFromURL($startingAt);
         $results = [];
-        $nextPage = $this->getNextPageURL();
+
+        $nextPage = $startingAt;
+
         while ($nextPage) {
             $this->output->writeln("Fetching page <comment>$currentPage of $pageCount</comment>");
             $results = array_merge($results, $this->get($nextPage)['items']);
@@ -137,11 +141,20 @@ class GitHubClient
         $header = $this->lastResponse->getHeader('Link');
 
         if ($header) {
-            preg_match('%<.+page=(\d+)>; rel="last"%i', trim($header[0], ','), $matches);
+            preg_match('%<(.+)>; rel="last"%i', trim($header[0], ','), $matches);
+            $url = array_get($matches, 1);
+            $pageNumber = $this->getPageNumberFromURL($url);
 
-            return (int) array_get($matches, 1, 1);
+            return (int) $pageNumber ?: 1;
         }
 
         return 1;
+    }
+
+    protected function getPageNumberFromURL($url)
+    {
+        preg_match('%.+page=(\d+).*%', $url, $matches);
+
+        return array_get($matches, 1);
     }
 }

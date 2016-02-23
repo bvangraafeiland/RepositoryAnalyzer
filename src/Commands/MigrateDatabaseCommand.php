@@ -61,6 +61,8 @@ class MigrateDatabaseCommand extends Command
             $table->integer('analysis_tool_id')->unsigned()->index();
             $table->foreign('analysis_tool_id')->references('id')->on('analysis_tools')->onDelete('cascade');
             $table->boolean('config_file_present')->index();
+            $table->boolean('in_dev_dependencies')->index();
+            $table->boolean('in_build_tool')->index();
         });
     }
 

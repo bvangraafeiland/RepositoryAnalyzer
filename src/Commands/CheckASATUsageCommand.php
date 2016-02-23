@@ -1,12 +1,9 @@
 <?php
 namespace App\Commands;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
+use App\AnalysisTool;
 use App\Repository;
 use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Created by PhpStorm.
@@ -16,21 +13,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class CheckASATUsageCommand extends CheckUsageCommand
 {
-    /**
-     * @var Client
-     */
-    protected $githubRawClient;
-
     protected $projectProperty = 'ASAT';
-
-    protected function initialize(InputInterface $input, OutputInterface $output)
-    {
-        parent::initialize($input, $output);
-
-        $this->githubRawClient = new Client([
-            'base_uri' => 'http://raw.githubusercontent.com',
-        ]);
-    }
 
     protected function configure()
     {
@@ -55,12 +38,34 @@ class CheckASATUsageCommand extends CheckUsageCommand
      */
     protected function checkRubyASATS(Repository $project)
     {
-        return $this->checkASATFile($project, '.rubocop.yml');
+        $hasConfigFile = (bool) $project->getFile('.rubocop.yml');
+        $hasDependency = $project->fileContains('Gemfile', 'rubocop');
+        $hasBuildTask = $project->fileContains('Rakefile', 'rubocop');
+
+        return $this->checkASATS($project, 'rubocop', $hasConfigFile, $hasDependency, $hasBuildTask);
+    }
+
+    protected function checkASATS(Repository $project, $asatName, $config_file_present, $in_dev_dependencies, $in_build_tool)
+    {
+        if (!($config_file_present || $in_dev_dependencies || $in_build_tool)) {
+            return false;
+        }
+
+        $tool = AnalysisTool::whereName($asatName)->first();
+        $project->asats()->attach($tool, compact('config_file_present', 'in_dev_dependencies', 'in_build_tool'));
+        $project->asat_in_build_tool = (bool) $in_build_tool;
+
+        return true;
     }
 
     protected function checkPythonASATS(Repository $project)
     {
-        return $this->checkASATFile($project, 'pylintrc') || $this->checkASATFile($project, '.pylintrc');
+        //TODO check entire file tree instead of 5 requests
+        $hasConfigFile = $project->getFile('pylintrc') || $project->getFile('.pylintrc');
+        $hasDependency = $project->fileContains('setup.py', 'pylint') || $project->fileContains('requirements.txt', 'pylint');
+        $hasBuildTask = $project->fileContains('tox.ini', 'pylint');
+
+        return $this->checkASATS($project, 'pylint', $hasConfigFile, $hasDependency, $hasBuildTask);
     }
 
     protected function checkJavascriptASATS(Repository $project)
@@ -68,25 +73,8 @@ class CheckASATUsageCommand extends CheckUsageCommand
 
     }
 
-    /**
-     * Check for the existence of the given file in the root directory of the repository
-     *
-     * @param Repository $project
-     * @param $filename
-     *
-     * @return bool
-     */
-    protected function checkASATFile(Repository $project, $filename)
+    protected function checkJavaASATS(Repository $project)
     {
-        try {
-            $this->githubRawClient->get('/' . $project['full_name'] . '/' . $project['default_branch'] . '/' . $filename);
-            return true;
-        } catch (ClientException $e) {
-            if ($e->getResponse()->getStatusCode() == 404) {
-                return false;
-            } else {
-                throw $e;
-            }
-        }
+
     }
 }
