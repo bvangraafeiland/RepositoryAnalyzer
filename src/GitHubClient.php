@@ -1,10 +1,12 @@
 <?php
 namespace App;
 
-use App\Exceptions\GitHubException;
+use App\Exceptions\RateLimitReachedException;
+use App\Exceptions\TooManyResultsException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use Psr\Http\Message\ResponseInterface;
+use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -30,7 +32,7 @@ class GitHubClient
      */
     protected $output;
 
-    public function __construct(OutputInterface $output)
+    public function __construct($output = null)
     {
         $this->github = new Client([
             'base_uri' => 'https://api.github.com',
@@ -39,7 +41,7 @@ class GitHubClient
             ]
         ]);
 
-        $this->output = $output;
+        $this->output = $output ?: new ConsoleOutput;
     }
 
     public function get($url)
@@ -61,7 +63,7 @@ class GitHubClient
         $this->output->writeln("<comment>$numResults found.</comment>");
 
         if ($numResults > 1000 || $firstChunk['incomplete_results']) {
-            throw new GitHubException('Too many or incomplete results!');
+            throw new TooManyResultsException('Too many or incomplete results!');
         };
 
         $remainingResults = $this->followPages();
@@ -92,33 +94,35 @@ class GitHubClient
         return $results;
     }
 
-    protected function asArray($uri, $options = [], $method = 'get')
+    protected function asArray($uri, $options = [], $method = 'get', $waitForLimitReset = true)
     {
-        $this->lastResponse = $this->waitIfLimitExceeded(function () use ($method, $uri, $options) {
-            $this->output->writeln("$method $uri");
+        $this->lastResponse = $this->requestRespectingRateLimit(function () use ($method, $uri, $options) {
+            if ($this->output->isDebug())
+                $this->output->writeln("$method $uri");
+
             return $this->github->request($method, $uri, $options);
-        });
+        }, $waitForLimitReset);
 
         return json_decode($this->lastResponse->getBody(), true);
     }
 
-    protected function waitIfLimitExceeded(callable $callback)
+    protected function requestRespectingRateLimit(callable $callback, $waitForReset = true)
     {
         try {
             $result = $callback();
             return $result;
         } catch (ClientException $e) {
             $response = $e->getResponse();
-            if ($e->getCode() != 403 || (int) $response->getHeader('X-RateLimit-Remaining')[0] !== 0)
+            if ($e->getCode() != 403 || (int) $response->getHeader('X-RateLimit-Remaining')[0] !== 0 || !$waitForReset)
                 throw $e;
 
             $resetAt = (int) $response->getHeader('X-RateLimit-Reset')[0];
             $timeLeft = $resetAt - time();
 
             $this->output->writeln("<comment>Rate limit exceeded, waiting $timeLeft seconds for reset</comment>");
-            sleep($timeLeft);
 
-            return $this->waitIfLimitExceeded($callback);
+            sleep($timeLeft);
+            return $this->requestRespectingRateLimit($callback);
         }
     }
 
@@ -156,5 +160,10 @@ class GitHubClient
         preg_match('%.+page=(\d+).*%', $url, $matches);
 
         return array_get($matches, 1);
+    }
+
+    public function getContent($repo, $path = '')
+    {
+        return $this->asArray("/repos/$repo/contents/$path");
     }
 }

@@ -6,6 +6,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Psr\Http\Message\StreamInterface;
 
 class Repository extends Model
 {
@@ -28,7 +29,7 @@ class Repository extends Model
      *
      * @param $path
      *
-     * @return string|null
+     * @return StreamInterface|null
      * @throws ClientException
      */
     public function getFile($path)
@@ -69,5 +70,11 @@ class Repository extends Model
     protected function setCreatedAtAttribute($value)
     {
         $this->attributes['created_at'] = Carbon::parse($value)->format($this->getDateFormat());
+    }
+
+    protected function getNameAttribute()
+    {
+        $parts = explode('/', $this->full_name);
+        return $parts[1];
     }
 }

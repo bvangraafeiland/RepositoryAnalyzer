@@ -1,8 +1,17 @@
 #!/usr/bin/env php
 <?php
 
+use App\Commands\CheckASATUsageCommand;
+use App\Repository;
+
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/helpers.php';
 
 $application->run();
+
+//$repo = App\Repository::where('full_name', 'helmetjs/helmet')->first();
+// $check = new CheckASATUsageCommand;
+// $check->initGithub();
+// foreach(Repository::whereLanguage('ruby')->get() as $repo)
+//     $check->checkRubyASATS($repo);

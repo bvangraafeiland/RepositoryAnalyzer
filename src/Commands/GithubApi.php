@@ -33,6 +33,11 @@ trait GithubApi
         $this->input = $input;
         $this->output = $output;
 
-        $this->github = new GitHubClient($output);
+        $this->initGithub();
+    }
+
+    public function initGithub()
+    {
+        $this->github = new GitHubClient($this->output);
     }
 }
