@@ -3,6 +3,7 @@ namespace App\Commands;
 
 use App\Repository;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -32,6 +33,11 @@ abstract class CheckUsageCommand extends Command
         }
 
         $output->writeln("\n<info>Done!</info>");
+    }
+
+    protected function configure()
+    {
+        $this->addArgument('language', InputArgument::REQUIRED, 'Language to filter projects');
     }
 
     protected abstract function updateProject(Repository $project);

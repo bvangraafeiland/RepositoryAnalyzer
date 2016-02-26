@@ -4,6 +4,9 @@ namespace App\Commands;
 use App\AnalysisTool;
 use App\Repository;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Created by PhpStorm.
@@ -19,8 +22,19 @@ class CheckASATUsageCommand extends CheckUsageCommand
 
     protected function configure()
     {
+        parent::configure();
         $this->setName('check:asats')->setDescription('Update repositories of the given language with information on ASAT usage')
-            ->addArgument('language', InputArgument::REQUIRED, 'Language to filter projects');
+            ->addOption('repository', null, InputOption::VALUE_REQUIRED, 'If provided, only this repository will be checked for ASAT usage');
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        if ($input->hasOption('repository')) {
+            $project = Repository::whereFullName($input->getOption('repository'))->firstOrFail();
+            $this->updateProject($project);
+        }
+        else
+            parent::execute($input, $output);
     }
 
     protected function updateProject(Repository $project)
@@ -51,6 +65,8 @@ class CheckASATUsageCommand extends CheckUsageCommand
             $hasDependency = $gemspec && $project->fileContains($gemspec, 'rubocop');
         }
 
+        $project->asat_in_build_tool = (bool) $hasBuildTask;
+
         return $this->attachASAT($project, 'rubocop', $hasConfigFile, $hasDependency, $hasBuildTask);
     }
 
@@ -69,6 +85,8 @@ class CheckASATUsageCommand extends CheckUsageCommand
         $hasDependency = $project->fileContains('setup.py', 'pylint') || $project->fileContains('requirements.txt', 'pylint');
         $hasBuildTask = $project->fileContains('tox.ini', 'pylint');
 
+        $project->asat_in_build_tool = (bool) $hasBuildTask;
+
         return $this->attachASAT($project, 'pylint', $hasConfigFile, $hasDependency, $hasBuildTask);
     }
 
@@ -76,7 +94,9 @@ class CheckASATUsageCommand extends CheckUsageCommand
     {
         $projectRootFiles = array_pluck($this->github->getContent($project->full_name), 'name');
         $package = json_decode($project->getFile('package.json'), true);
-        $devDependencies = $package['devDependencies'];
+        $dependencies = array_get($package, 'dependencies', []);
+        $devDependencies = array_get($package, 'devDependencies', []);
+        $dependenciesJSON = json_encode($dependencies) . json_encode($devDependencies);
 
         if (in_array('Gruntfile.js', $projectRootFiles)) {
             $buildFile = $project->getFile('Gruntfile.js');
@@ -87,9 +107,11 @@ class CheckASATUsageCommand extends CheckUsageCommand
         else
             $buildFile = null;
 
+        //TODO ignore comments in build file
+
         // jshint
         $jshintConfigFile = in_array('.jshintrc', $projectRootFiles) || array_has($package, 'jshintConfig');
-        $jshintDependency = str_contains(json_encode($devDependencies), 'jshint');
+        $jshintDependency = str_contains($dependenciesJSON, 'jshint');
         $jshintBuildTask = str_contains($buildFile, 'jshint');
 
         $jshint = $this->attachASAT($project, 'jshint', $jshintConfigFile, $jshintDependency, $jshintBuildTask);
@@ -97,7 +119,7 @@ class CheckASATUsageCommand extends CheckUsageCommand
 
         // jscs
         $jscsConfigFile = in_array('.jscsrc', $projectRootFiles) || array_has($package, 'jscsConfig');
-        $jscsDependency = str_contains(json_encode($devDependencies), 'jscs');
+        $jscsDependency = str_contains($dependenciesJSON, 'jscs');
         $jscsBuildTask = str_contains($buildFile, 'jscs');
 
         $jscs = $this->attachASAT($project, 'jscs', $jscsConfigFile, $jscsDependency, $jscsBuildTask);
@@ -105,10 +127,12 @@ class CheckASATUsageCommand extends CheckUsageCommand
 
         // eslint
         $eslintConfigFile = (bool) array_intersect(['.eslintrc', '.eslintrc.js', '.eslintrc.json', '.eslintrc.yml'], $projectRootFiles) || array_has($package, 'eslintConfig');
-        $eslintDependency = str_contains(json_encode($devDependencies), 'eslint');
+        $eslintDependency = str_contains($dependenciesJSON, 'eslint');
         $eslintBuildTask = str_contains($buildFile, 'eslint');
 
         $eslint = $this->attachASAT($project, 'eslint', $eslintConfigFile, $eslintDependency, $eslintBuildTask);
+
+        $project->asat_in_build_tool = $jshintBuildTask || $jshintBuildTask || $eslintBuildTask;
 
         return $jshint || $jscs || $eslint;
     }
@@ -124,9 +148,12 @@ class CheckASATUsageCommand extends CheckUsageCommand
             return false;
         }
 
+        $flags = compact('config_file_present', 'in_dev_dependencies', 'in_build_tool');
         $tool = AnalysisTool::whereName($asatName)->first();
-        $project->asats()->attach($tool, compact('config_file_present', 'in_dev_dependencies', 'in_build_tool'));
-        $project->asat_in_build_tool = (bool) $in_build_tool;
+        if ($project->asats()->getRelatedIds()->contains($tool->id))
+            $project->asats()->updateExistingPivot($tool->id, $flags);
+        else
+            $project->asats()->attach($tool, $flags);
 
         return true;
     }

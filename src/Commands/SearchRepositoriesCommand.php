@@ -34,7 +34,7 @@ class SearchRepositoriesCommand extends Command
         $numStars = $input->getOption('stars');
         $lang = $input->getArgument('language');
 
-        $queryString = "language:$lang created:\"$year-01-01 .. $year-12-31\" pushed:>=$lastPush stars:>=$numStars";
+        $queryString = buildSearchQuery($lang, $year, $lastPush, $numStars);
         $output->writeln("Search query: <info>'$queryString'</info>");
 
         // int total_count, bool incomplete_results, array items
@@ -46,8 +46,7 @@ class SearchRepositoriesCommand extends Command
     {
         // save to db
         foreach ($items as $item) {
-            if (! Repository::query()->find($item['id']))
-                Repository::create($item);
+            Repository::addIfNew($item);
         }
     }
 }

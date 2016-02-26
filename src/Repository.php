@@ -16,12 +16,20 @@ class Repository extends Model
 
     protected $dates = ['created_at', 'pushed_at'];
 
+    public static function addIfNew(array $item)
+    {
+        if (! static::query()->find($item['id']))
+            return static::create($item);
+
+        return null;
+    }
+
     /**
      * @return BelongsToMany
      */
     public function asats()
     {
-        return $this->belongsToMany(AnalysisTool::class)->withPivot(['config_file_present', 'in_dev_dependencies', 'in_build_tool']);
+        return $this->belongsToMany(AnalysisTool::class)->withPivot(['config_file_present', 'in_dev_dependencies', 'in_build_tool'])->withTimestamps();
     }
 
     /**

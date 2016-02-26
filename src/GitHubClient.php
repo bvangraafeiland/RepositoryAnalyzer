@@ -71,6 +71,20 @@ class GitHubClient
         return array_merge($firstChunk['items'], $remainingResults);
     }
 
+    public function countRepositories($language, $year, $numStars = 200)
+    {
+        $result = $this->asArray('/search/repositories', [
+            'query' => ['q' => buildSearchQuery($language, $year, '2016-01-01', $numStars)]
+        ]);
+
+        return $result['total_count'];
+    }
+
+    public function getRepository($name)
+    {
+        return $this->asArray("/repos/$name");
+    }
+
     protected function followPages($startingAt = null, $pageCount = null)
     {
         $startingAt = $startingAt ?: $this->getNextPageURL();

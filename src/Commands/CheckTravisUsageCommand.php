@@ -33,8 +33,8 @@ class CheckTravisUsageCommand extends CheckUsageCommand
 
     protected function configure()
     {
-        $this->setName('check:travis')->setDescription('Update repositories of the given language with information on recent Travis usage')
-            ->addArgument('language', InputArgument::REQUIRED, 'Language to filter projects');
+        parent::configure();
+        $this->setName('check:travis')->setDescription('Update repositories of the given language with information on recent Travis usage');
     }
 
     protected function updateProject(Repository $project)

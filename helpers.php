@@ -10,3 +10,7 @@ function progressBar(OutputInterface $output, $max) {
 
     return $bar;
 }
+
+function buildSearchQuery($lang, $year, $lastPush, $numStars) {
+    return "language:$lang created:\"$year-01-01 .. $year-12-31\" pushed:>=$lastPush stars:>=$numStars";
+}

@@ -63,6 +63,7 @@ class MigrateDatabaseCommand extends Command
             $table->boolean('config_file_present')->index();
             $table->boolean('in_dev_dependencies')->index();
             $table->boolean('in_build_tool')->index();
+            $table->timestamps();
         });
     }
 
