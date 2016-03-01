@@ -56,7 +56,7 @@ class CheckASATUsageCommand extends CheckUsageCommand
     {
         $hasConfigFile = (bool) $project->getFile('.rubocop.yml');
         $hasDependency = $project->fileContains('Gemfile', 'rubocop');
-        $hasBuildTask = $project->fileContains('Rakefile', 'rubocop');
+        $hasBuildTask = $project->fileContains('Rakefile', 'rubocop') || $project->fileContains('Makefile', 'rubocop');
 
         if (!$hasDependency && $hasBuildTask) {
             // Check for gemspec file, project may be a ruby gem
@@ -83,7 +83,7 @@ class CheckASATUsageCommand extends CheckUsageCommand
     {
         $hasConfigFile = $project->getFile('pylintrc') || $project->getFile('.pylintrc');
         $hasDependency = $project->fileContains('setup.py', 'pylint') || $project->fileContains('requirements.txt', 'pylint');
-        $hasBuildTask = $project->fileContains('tox.ini', 'pylint');
+        $hasBuildTask = $project->fileContains('tox.ini', 'pylint') || $project->fileContains('Makefile', 'pylint');
 
         $project->asat_in_build_tool = (bool) $hasBuildTask;
 
@@ -107,39 +107,65 @@ class CheckASATUsageCommand extends CheckUsageCommand
         else
             $buildFile = null;
 
-        //TODO ignore comments in build file
-
         // jshint
         $jshintConfigFile = in_array('.jshintrc', $projectRootFiles) || array_has($package, 'jshintConfig');
         $jshintDependency = str_contains($dependenciesJSON, 'jshint');
-        $jshintBuildTask = str_contains($buildFile, 'jshint');
+        $jshintBuildTask = $this->searchCode($buildFile, 'jshint');
 
         $jshint = $this->attachASAT($project, 'jshint', $jshintConfigFile, $jshintDependency, $jshintBuildTask);
-
 
         // jscs
         $jscsConfigFile = in_array('.jscsrc', $projectRootFiles) || array_has($package, 'jscsConfig');
         $jscsDependency = str_contains($dependenciesJSON, 'jscs');
-        $jscsBuildTask = str_contains($buildFile, 'jscs');
+        $jscsBuildTask = $this->searchCode($buildFile, 'jscs');
 
         $jscs = $this->attachASAT($project, 'jscs', $jscsConfigFile, $jscsDependency, $jscsBuildTask);
 
-
         // eslint
-        $eslintConfigFile = (bool) array_intersect(['.eslintrc', '.eslintrc.js', '.eslintrc.json', '.eslintrc.yml'], $projectRootFiles) || array_has($package, 'eslintConfig');
+        $eslintConfigFile = (bool) array_intersect(['.eslintrc', '.eslintrc.js', '.eslintrc.json', '.eslintrc.yml', '.eslintrc.yaml'], $projectRootFiles) || array_has($package, 'eslintConfig');
         $eslintDependency = str_contains($dependenciesJSON, 'eslint');
-        $eslintBuildTask = str_contains($buildFile, 'eslint');
+        $eslintBuildTask = $this->searchCode($buildFile, 'eslint');
 
         $eslint = $this->attachASAT($project, 'eslint', $eslintConfigFile, $eslintDependency, $eslintBuildTask);
 
-        $project->asat_in_build_tool = $jshintBuildTask || $jshintBuildTask || $eslintBuildTask;
+        $project->asat_in_build_tool = $jshintBuildTask || $jscsBuildTask || $eslintBuildTask;
 
         return $jshint || $jscs || $eslint;
     }
 
     public function checkJavaASATS(Repository $project)
     {
+        $projectRootFiles = array_pluck($this->github->getContent($project->full_name), 'name');
 
+        $checkstyleConfigFile = $checkstyleDependency = $checkstyleBuildTask = false;
+        $pmdConfigFile = $pmdDependency = $pmdBuildTask = false;
+
+        if (in_array('pom.xml', $projectRootFiles)) {
+            $buildFile = $project->getFile('pom.xml');
+            $mavenPlugins = simplexml_load_string($buildFile)->build->plugins->children();
+
+            foreach ($mavenPlugins as $plugin) {
+                if ($plugin->artifactId == 'maven-checkstyle-plugin') {
+                    $checkstyleDependency = true;
+                    $configLocation = $plugin->configuration->configLocation;
+                    $checkstyleConfigFile = $configLocation && $configLocation != 'sun_checks.xml' && $configLocation != 'google_checks.xml';
+                    $checkstyleBuildTask = (bool) $plugin->executions->execution;
+                }
+
+                if ($plugin->artifactId == 'maven-pmd-plugin') {
+                    $pmdDependency = true;
+
+                }
+            }
+
+        }
+
+        $checkstyle = $this->attachASAT($project, 'checkstyle', $checkstyleConfigFile, $checkstyleDependency, $checkstyleBuildTask);
+        $pmd = $this->attachASAT($project, 'pmd', $pmdConfigFile, $pmdDependency, $pmdBuildTask);
+
+        $project->asat_in_build_tool = $checkstyleBuildTask || $pmdBuildTask;
+
+        return $checkstyle || $pmd;
     }
 
     protected function attachASAT(Repository $project, $asatName, $config_file_present, $in_dev_dependencies, $in_build_tool)
@@ -156,5 +182,21 @@ class CheckASATUsageCommand extends CheckUsageCommand
             $project->asats()->attach($tool, $flags);
 
         return true;
+    }
+
+    /**
+     * @param $file
+     *
+     * @param $term
+     *
+     * @param string $comment
+     *
+     * @return bool
+     */
+    protected function searchCode($file, $term, $comment = "//")
+    {
+        $jshintBuildTask = str_contains(preg_replace("%$comment.+%", "", $file), $term);
+
+        return $jshintBuildTask;
     }
 }
