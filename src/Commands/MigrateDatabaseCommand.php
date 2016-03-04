@@ -1,6 +1,7 @@
 <?php
 namespace App\Commands;
 
+use App\BuildTool;
 use Illuminate\Database\Schema\Blueprint;
 use App\AnalysisTool;
 use Symfony\Component\Console\Command\Command;
@@ -43,7 +44,7 @@ class MigrateDatabaseCommand extends Command
             $table->boolean('asat_in_build_tool')->nullable();
         });
 
-        $output->writeln("Creating tools table");
+        $output->writeln("Creating analysis tools table");
         DB::schema()->create('analysis_tools', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name')->unique();
@@ -53,7 +54,18 @@ class MigrateDatabaseCommand extends Command
             AnalysisTool::create(['name' => $tool]);
         }
 
-        $output->writeln("Creating pivot table");
+        $output->writeln("Creating build tools table");
+        DB::schema()->create('build_tools', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('name')->unique();
+        });
+
+        foreach (['grunt', 'gulp', 'maven', 'ant', 'gradle', 'rake', 'tox'] as $tool) {
+            BuildTool::create(['name' => $tool]);
+        }
+
+        $output->writeln("Creating pivot tables");
+
         DB::schema()->create('analysis_tool_repository', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('repository_id')->unsigned()->index();
@@ -63,6 +75,15 @@ class MigrateDatabaseCommand extends Command
             $table->boolean('config_file_present')->index();
             $table->boolean('in_dev_dependencies')->index();
             $table->boolean('in_build_tool')->index();
+            $table->timestamps();
+        });
+
+        DB::schema()->create('build_tool_repository', function (Blueprint $table) {
+            $table->increments('id');
+            $table->integer('repository_id')->unsigned()->index();
+            $table->foreign('repository_id')->references('id')->on('repositories')->onDelete('cascade');
+            $table->integer('build_tool_id')->unsigned()->index();
+            $table->foreign('build_tool_id')->references('id')->on('build_tools')->onDelete('cascade');
             $table->timestamps();
         });
     }

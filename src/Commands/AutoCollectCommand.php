@@ -15,7 +15,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class AutoCollectCommand extends Command
 {
-    const LANGUAGES = ['java', 'javascript', 'ruby', 'python'];
+    protected static $LANGUAGES = ['java', 'javascript', 'ruby', 'python'];
 
     protected function configure()
     {
@@ -30,7 +30,7 @@ class AutoCollectCommand extends Command
 
         $command = 'search:repositories';
         $stars = $input->getOption('stars');
-        foreach (static::LANGUAGES as $language) {
+        foreach (static::$LANGUAGES as $language) {
             foreach (range(2008, 2016) as $year) {
                 $application->run(new ArrayInput(compact('command', 'language', 'year') + ['--stars' => $stars]), $output);
             }

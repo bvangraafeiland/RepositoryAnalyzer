@@ -2,8 +2,9 @@
 namespace App\Commands;
 
 use App\AnalysisTool;
+use App\BuildTool;
 use App\Repository;
-use Symfony\Component\Console\Input\InputArgument;
+use SimpleXMLElement;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -29,7 +30,7 @@ class CheckASATUsageCommand extends CheckUsageCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        if ($input->hasOption('repository')) {
+        if ($input->getOption('repository')) {
             $project = Repository::whereFullName($input->getOption('repository'))->firstOrFail();
             $this->updateProject($project);
         }
@@ -141,23 +142,41 @@ class CheckASATUsageCommand extends CheckUsageCommand
         $pmdConfigFile = $pmdDependency = $pmdBuildTask = false;
 
         if (in_array('pom.xml', $projectRootFiles)) {
-            $buildFile = $project->getFile('pom.xml');
-            $mavenPlugins = simplexml_load_string($buildFile)->build->plugins->children();
+            $this->attachBuildTool($project, 'maven');
 
-            foreach ($mavenPlugins as $plugin) {
-                if ($plugin->artifactId == 'maven-checkstyle-plugin') {
-                    $checkstyleDependency = true;
-                    $configLocation = $plugin->configuration->configLocation;
-                    $checkstyleConfigFile = $configLocation && $configLocation != 'sun_checks.xml' && $configLocation != 'google_checks.xml';
-                    $checkstyleBuildTask = (bool) $plugin->executions->execution;
-                }
+            $pom = $this->getXmlWithoutNamespace($project->getFile('pom.xml'));
 
-                if ($plugin->artifactId == 'maven-pmd-plugin') {
-                    $pmdDependency = true;
+            // Checkstyle
+            $checkstyleDependency = (bool) $pom->xpath("build//plugin[artifactId = 'maven-checkstyle-plugin']");
 
-                }
-            }
+            $configFileLocation = $pom->xpath("build//plugin[artifactId = 'maven-checkstyle-plugin']//configuration/configLocation");
+            // sun and google checks are default presets
+            $checkstyleConfigFile = $configFileLocation && $configFileLocation[0] != 'sun_checks.xml' && $configFileLocation[0] != 'google_checks.xml';
+            // either check or checkstyle goal can be used, the latter to also generate a report
+            $goals = $pom->xpath("build//plugin[artifactId = 'maven-checkstyle-plugin']/executions/execution/goals/goal");
+            $checkstyleBuildTask = (bool) array_intersect($goals, ['checkstyle', 'check']);
 
+            // PMD
+            $pmdDependency = (bool) $pom->xpath("build//plugin[artifactId = 'maven-pmd-plugin']");
+
+            // Having the rulesets element means deviating from the default 3 rulesets used
+            $pmdConfigFile = (bool) $pom->xpath("build//plugin[artifactId = 'maven-pmd-plugin']//configuration/rulesets");
+
+            $goals = $pom->xpath("build//plugin[artifactId = 'maven-pmd-plugin']/executions/execution/goals/goal");
+            $pmdBuildTask = (bool) array_intersect($goals, ['pmd', 'check']);
+        }
+        if (in_array('build.xml', $projectRootFiles)) {
+            $this->attachBuildTool($project, 'ant');
+        }
+        if (in_array('build.gradle', $projectRootFiles)) {
+            $this->attachBuildTool($project, 'gradle');
+        }
+
+        // config files may still be present without being mentioned in the build tool, maybe for use in IDE?
+        if ($project->buildTools()->count() == 0) {
+            $checkstyleConfigFile = $this->existsInProjectFiles($project,
+                'www.puppycrawl.com/dtds/configuration extension:xml');
+            $pmdConfigFile = $this->existsInProjectFiles($project, 'pmd.sourceforge.net/ruleset extension:xml');
         }
 
         $checkstyle = $this->attachASAT($project, 'checkstyle', $checkstyleConfigFile, $checkstyleDependency, $checkstyleBuildTask);
@@ -166,6 +185,12 @@ class CheckASATUsageCommand extends CheckUsageCommand
         $project->asat_in_build_tool = $checkstyleBuildTask || $pmdBuildTask;
 
         return $checkstyle || $pmd;
+    }
+
+    protected function existsInProjectFiles(Repository $project, $query)
+    {
+        $search = $this->github->searchInRepository($project->full_name, $query);
+        return (bool) array_get($search, 'total_count');
     }
 
     protected function attachASAT(Repository $project, $asatName, $config_file_present, $in_dev_dependencies, $in_build_tool)
@@ -184,6 +209,14 @@ class CheckASATUsageCommand extends CheckUsageCommand
         return true;
     }
 
+    protected function attachBuildTool(Repository $project, $toolName)
+    {
+        $tool = BuildTool::whereName($toolName)->firstOrFail();
+
+        if (!$project->buildTools()->getRelatedIds()->contains($tool->id))
+            $project->buildTools()->attach($tool);
+    }
+
     /**
      * @param $file
      *
@@ -198,5 +231,15 @@ class CheckASATUsageCommand extends CheckUsageCommand
         $jshintBuildTask = str_contains(preg_replace("%$comment.+%", "", $file), $term);
 
         return $jshintBuildTask;
+    }
+
+    /**
+     * @param string $xml
+     *
+     * @return SimpleXMLElement
+     */
+    protected function getXmlWithoutNamespace($xml)
+    {
+        return simplexml_load_string(preg_replace('%xmlns=".+"%', '', $xml));
     }
 }

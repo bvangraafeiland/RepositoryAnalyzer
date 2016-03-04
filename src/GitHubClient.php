@@ -1,8 +1,8 @@
 <?php
 namespace App;
 
-use App\Exceptions\RateLimitReachedException;
 use App\Exceptions\TooManyResultsException;
+use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use Psr\Http\Message\ResponseInterface;
@@ -85,6 +85,13 @@ class GitHubClient
         return $this->asArray("/repos/$name");
     }
 
+    public function searchInRepository($repoName, $query)
+    {
+        return $this->asArray('/search/code', [
+            'query' => ['q' => "$query repo:$repoName"]
+        ]);
+    }
+
     protected function followPages($startingAt = null, $pageCount = null)
     {
         $startingAt = $startingAt ?: $this->getNextPageURL();
@@ -130,8 +137,9 @@ class GitHubClient
             if ($e->getCode() != 403 || (int) $response->getHeader('X-RateLimit-Remaining')[0] !== 0 || !$waitForReset)
                 throw $e;
 
+            $currentTime = Carbon::parse($response->getHeader('Date')[0])->timestamp;
             $resetAt = (int) $response->getHeader('X-RateLimit-Reset')[0];
-            $timeLeft = $resetAt - time();
+            $timeLeft = $resetAt - $currentTime;
 
             $this->output->writeln("<comment>Rate limit exceeded, waiting $timeLeft seconds for reset</comment>");
 

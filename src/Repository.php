@@ -32,6 +32,11 @@ class Repository extends Model
         return $this->belongsToMany(AnalysisTool::class)->withPivot(['config_file_present', 'in_dev_dependencies', 'in_build_tool'])->withTimestamps();
     }
 
+    public function buildTools()
+    {
+        return $this->belongsToMany(BuildTool::class)->withTimestamps();
+    }
+
     /**
      * Get the contents of the given file in the repository
      *
