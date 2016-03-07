@@ -2,6 +2,8 @@
 namespace App\Commands;
 
 use App\GitHubClient;
+use GuzzleHttp\Client;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -11,12 +13,17 @@ use Symfony\Component\Console\Output\OutputInterface;
  * Date: 19-02-2016
  * Time: 22:35
  */
-trait GithubApi
+abstract class ApiUsingCommand extends Command
 {
     /**
      * @var GitHubClient
      */
     protected $github;
+
+    /**
+     * @var Client
+     */
+    protected $travis;
 
     /**
      * @var InputInterface
@@ -33,11 +40,10 @@ trait GithubApi
         $this->input = $input;
         $this->output = $output;
 
-        $this->initGithub();
-    }
-
-    public function initGithub()
-    {
         $this->github = new GitHubClient($this->output);
+
+        $this->travis = new Client([
+            'base_uri' => 'https://api.travis-ci.org'
+        ]);
     }
 }

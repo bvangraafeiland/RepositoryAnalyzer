@@ -71,10 +71,10 @@ class GitHubClient
         return array_merge($firstChunk['items'], $remainingResults);
     }
 
-    public function countRepositories($language, $year, $numStars = 200)
+    public function countRepositories($query)
     {
         $result = $this->asArray('/search/repositories', [
-            'query' => ['q' => buildSearchQuery($language, $year, '2016-01-01', $numStars)]
+            'query' => ['q' => $query]
         ]);
 
         return $result['total_count'];

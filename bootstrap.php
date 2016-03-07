@@ -1,10 +1,8 @@
 <?php
 use App\Commands\AddRepositoryCommand;
 use App\Commands\AutoCollectCommand;
-use App\Commands\CheckASATUsageCommand;
+use App\Commands\ProcessProjectsCommand;
 use App\Commands\CheckRateLimitCommand;
-use App\Commands\CheckTravisUsageCommand;
-use App\Commands\CountSearchResultsCommand;
 use App\Commands\MigrateDatabaseCommand;
 use App\Commands\SearchRepositoriesCommand;
 use App\Commands\TinkerCommand;
@@ -33,9 +31,7 @@ $application->addCommands([
     new MigrateDatabaseCommand,
     new CheckRateLimitCommand,
     new AutoCollectCommand,
-    new CheckASATUsageCommand,
-    new CheckTravisUsageCommand,
-    new CountSearchResultsCommand,
+    new ProcessProjectsCommand,
     new AddRepositoryCommand,
     new TinkerCommand
 ]);

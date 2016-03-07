@@ -2,7 +2,6 @@
 namespace App\Commands;
 
 use App\Repository;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -13,10 +12,8 @@ use Symfony\Component\Console\Output\OutputInterface;
  * Date: 26-02-2016
  * Time: 17:28
  */
-class AddRepositoryCommand extends Command
+class AddRepositoryCommand extends ApiUsingCommand
 {
-    use GithubApi;
-
     protected function configure()
     {
         $this->setName('add:repository')->setDescription('Add a single repository to the database');

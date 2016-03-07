@@ -2,7 +2,6 @@
 namespace App\Commands;
 
 use App\Repository;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -14,17 +13,16 @@ use Symfony\Component\Console\Output\OutputInterface;
  * Date: 19-02-2016
  * Time: 17:13
  */
-class SearchRepositoriesCommand extends Command
+class SearchRepositoriesCommand extends ApiUsingCommand
 {
-    use GithubApi;
-
     protected function configure()
     {
         $this->setName('search')
             ->setDescription('Search for repositories on GitHub')
             ->addArgument('language', InputArgument::REQUIRED, "Filter repositories based on language")
             ->addArgument('year', InputArgument::REQUIRED, "Search for repositories created in this year")
-            ->addOption('stars', null, InputOption::VALUE_REQUIRED, "Minimum amount of stars a repository should have", 200);
+            ->addOption('stars', null, InputOption::VALUE_REQUIRED, "Minimum amount of stars a repository should have", 200)
+            ->addOption('just-count', null, InputOption::VALUE_NONE, 'When provided, returns just the number of projects that would be processed');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -37,9 +35,15 @@ class SearchRepositoriesCommand extends Command
         $queryString = buildSearchQuery($lang, $year, $lastPush, $numStars);
         $output->writeln("Search query: <info>'$queryString'</info>");
 
-        // int total_count, bool incomplete_results, array items
-        $results = $this->github->searchRepositories($queryString);
-        $this->storeRepositories($results);
+        if ($input->getOption('just-count')) {
+            $numResults = $this->github->countRepositories($queryString);
+            $output->writeln("<comment>$numResults found</comment>");
+        }
+        else {
+            // int total_count, bool incomplete_results, array items
+            $results = $this->github->searchRepositories($queryString);
+            $this->storeRepositories($results);
+        }
     }
 
     protected function storeRepositories(array $items)
