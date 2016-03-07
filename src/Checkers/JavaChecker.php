@@ -1,6 +1,8 @@
 <?php
 namespace App\Checkers;
 
+use Parsers\MavenParser;
+
 /**
  * Created by PhpStorm.
  * User: Bastiaan
@@ -15,28 +17,17 @@ class JavaChecker extends ProjectChecker
         $pmdConfigFile = $pmdDependency = $pmdBuildTask = false;
 
         if ($this->project->usesBuildTool('maven')) {
-            $pom = getXmlWithoutNamespace($this->project->getFile('pom.xml'));
+            $mavenConfig = new MavenParser($this->project->getFile('pom.xml'));
 
             // Checkstyle
-            $baseCheckstyleXpath = $this->getBaseXpathFor('checkstyle');
-            $checkstyleDependency = (bool) $pom->xpath($baseCheckstyleXpath);
-
-            $configFileLocation = $pom->xpath("$baseCheckstyleXpath//configuration/configLocation");
-            // sun and google checks are default presets
-            $checkstyleConfigFile = $configFileLocation && $configFileLocation[0] != 'sun_checks.xml' && $configFileLocation[0] != 'google_checks.xml';
-            // either check or checkstyle goal can be used, the latter to also generate a report
-            $goals = $pom->xpath("$baseCheckstyleXpath/executions/execution/goals/goal");
-            $checkstyleBuildTask = (bool) array_intersect($goals, ['checkstyle', 'check']);
+            $checkstyleDependency = $mavenConfig->hasBuildPlugin('checkstyle');
+            $checkstyleBuildTask = $mavenConfig->buildIncludesPlugin('checkstyle');
+            $checkstyleConfigFile = $mavenConfig->hasCustomCheckstyleConfig();
 
             // PMD
-            $basePMDXpath = $this->getBaseXpathFor('pmd');
-            $pmdDependency = (bool) $pom->xpath($basePMDXpath);
-
-            // Having the rulesets element means deviating from the default 3 rulesets used
-            $pmdConfigFile = (bool) $pom->xpath("$basePMDXpath//configuration/rulesets");
-
-            $goals = $pom->xpath("$basePMDXpath/executions/execution/goals/goal");
-            $pmdBuildTask = (bool) array_intersect($goals, ['pmd', 'check']);
+            $pmdDependency = $mavenConfig->hasBuildPlugin('pmd');
+            $pmdBuildTask = $mavenConfig->buildIncludesPlugin('pmd');
+            $pmdConfigFile = $mavenConfig->hasCustomPMDConfig();
         }
         if ($this->project->usesBuildTool('ant')) {
             //TODO ant
@@ -57,10 +48,7 @@ class JavaChecker extends ProjectChecker
         return $checkstyle || $pmd;
     }
 
-    protected function getBaseXpathFor($plugin)
-    {
-        return "build//plugin[artifactId = 'maven-$plugin-plugin']";
-    }
+
 
     protected function getBuildTools()
     {

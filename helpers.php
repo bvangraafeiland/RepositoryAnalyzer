@@ -18,13 +18,3 @@ function buildSearchQuery($lang, $year, $lastPush, $numStars) {
 function codeContains($code, $text, $comment = "//") {
     return str_contains(preg_replace("%$comment.+%", "", $code), $text);
 }
-
-/**
- * @param string $xml
- *
- * @return SimpleXMLElement
- */
-function getXmlWithoutNamespace($xml) {
-    $xmlWithoutNamespace = preg_replace('%xmlns="[^"]+"%', '', $xml);
-    return simplexml_load_string($xmlWithoutNamespace);
-}
