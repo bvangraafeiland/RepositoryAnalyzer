@@ -19,10 +19,10 @@ class JavaScriptChecker extends ProjectChecker
         $this->packageArray = json_decode($packageContent, true);
         $this->dependenciesJSON = $this->getCombinedDependenciesJSON();
 
-        if (in_array('Gruntfile.js', $this->projectRootFiles)) {
+        if ($this->project->usesBuildTool('grunt')) {
             $this->buildFile = $this->project->getFile('Gruntfile.js');
         }
-        elseif (in_array('gulpfile.js', $this->projectRootFiles)) {
+        elseif ($this->project->usesBuildTool('gulp')) {
             $this->buildFile = $this->project->getFile('gulpfile.js');
         }
 

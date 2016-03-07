@@ -26,22 +26,29 @@ class ProcessProjectsCommand extends ApiUsingCommand
         parent::configure();
         $this->setName('process:projects')->setDescription('Update repositories of the given language with information on ASAT usage')
             ->addArgument('language', InputArgument::REQUIRED, 'Language to filter projects')
+            ->addArgument('year', InputArgument::OPTIONAL, 'Only process projects created in this year')
             ->addOption('repository', null, InputOption::VALUE_REQUIRED, 'If provided, only this repository will be checked for ASAT usage');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        if ($input->getOption('repository')) {
-            $project = Repository::whereFullName($input->getOption('repository'))->firstOrFail();
-            $this->updateProject($project);
+        $constraints = ['language' => $input->getArgument('language')];
+
+        if ($repoName = $input->getOption('repository')) {
+            $constraints['full_name'] = $repoName;
         }
-        else
-            $this->processProjects($input->getArgument('language'));
+
+        if ($year = $input->getArgument('year')) {
+            $constraints[] = ['created_at', '>=', "$year-01-01"];
+            $constraints[] = ['created_at', '<=', "$year-12-31"];
+        }
+
+        $this->processProjects($constraints);
     }
 
-    protected function processProjects($language)
+    protected function processProjects($constraints)
     {
-        $projects = Repository::whereLanguage($language)->get();
+        $projects = Repository::where($constraints)->get();
         $count = count($projects);
         $this->output->writeln("$count projects found");
         $this->output->writeln("<comment>Processing projects...</comment>");

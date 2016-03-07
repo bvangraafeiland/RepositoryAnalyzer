@@ -25,5 +25,6 @@ function codeContains($code, $text, $comment = "//") {
  * @return SimpleXMLElement
  */
 function getXmlWithoutNamespace($xml) {
-    return simplexml_load_string(preg_replace('%xmlns=".+"%', '', $xml));
+    $xmlWithoutNamespace = preg_replace('%xmlns="[^"]+"%', '', $xml);
+    return simplexml_load_string($xmlWithoutNamespace);
 }

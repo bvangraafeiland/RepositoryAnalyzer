@@ -75,6 +75,11 @@ class Repository extends Model
         return str_contains(strtolower($this->getFile($filePath)), strtolower($string));
     }
 
+    public function usesBuildTool($tool)
+    {
+        return $this->buildTools->contains('name', $tool);
+    }
+
     protected function setPushedAtAttribute($value)
     {
         $this->attributes['pushed_at'] = Carbon::parse($value)->format($this->getDateFormat());

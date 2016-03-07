@@ -14,7 +14,7 @@ class JavaChecker extends ProjectChecker
         $checkstyleConfigFile = $checkstyleDependency = $checkstyleBuildTask = false;
         $pmdConfigFile = $pmdDependency = $pmdBuildTask = false;
 
-        if (in_array('pom.xml', $this->projectRootFiles)) {
+        if ($this->project->usesBuildTool('maven')) {
             $pom = getXmlWithoutNamespace($this->project->getFile('pom.xml'));
 
             // Checkstyle
@@ -38,10 +38,10 @@ class JavaChecker extends ProjectChecker
             $goals = $pom->xpath("$basePMDXpath/executions/execution/goals/goal");
             $pmdBuildTask = (bool) array_intersect($goals, ['pmd', 'check']);
         }
-        if (in_array('build.xml', $this->projectRootFiles)) {
+        if ($this->project->usesBuildTool('ant')) {
             //TODO ant
         }
-        if (in_array('build.gradle', $this->projectRootFiles)) {
+        if ($this->project->usesBuildTool('gradle')) {
             //TODO gradle
         }
 
