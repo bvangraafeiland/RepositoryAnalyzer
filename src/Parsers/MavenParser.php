@@ -1,5 +1,5 @@
 <?php
-namespace Parsers;
+namespace App\Parsers;
 
 /**
  * Created by PhpStorm.
@@ -7,9 +7,9 @@ namespace Parsers;
  * Date: 07-03-2016
  * Time: 17:43
  */
-class MavenParser extends XmlParser
+class MavenParser extends XmlParser implements JavaBuildInfo
 {
-    public function hasBuildPlugin($plugin)
+    public function containsPlugin($plugin)
     {
         return (bool) $this->pluginRootXpath($plugin);
     }
@@ -18,10 +18,10 @@ class MavenParser extends XmlParser
     {
         $configFileLocation = $this->checkstyleConfigFile();
         // sun and google checks are default presets
-        return $configFileLocation && $configFileLocation[0] != 'sun_checks.xml' && $configFileLocation[0] != 'google_checks.xml';
+        return $configFileLocation && $configFileLocation != 'sun_checks.xml' && $configFileLocation != 'google_checks.xml';
     }
 
-    public function hasCustomPMDConfig()
+    public function hasCustomPmdConfig()
     {
         // Having the rulesets element means deviating from the default 3 rulesets used
         return (bool) $this->pluginRootXpath("//configuration/rulesets");
@@ -29,10 +29,10 @@ class MavenParser extends XmlParser
 
     public function checkstyleConfigFile()
     {
-        return $this->pluginRootXpath('checkstyle', '//configuration/configLocation');
+        return array_get($this->pluginRootXpath('checkstyle', '//configuration/configLocation'), 0);
     }
 
-    public function buildIncludesPlugin($plugin)
+    public function hasPluginInBuild($plugin)
     {
         // either check or <plugin name> goal can be used, the latter to also generate a report
         $goals = $this->pluginRootXpath($plugin, '/executions/execution/goals/goal');

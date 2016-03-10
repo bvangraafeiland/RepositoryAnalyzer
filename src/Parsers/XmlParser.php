@@ -1,5 +1,5 @@
 <?php
-namespace Parsers;
+namespace App\Parsers;
 
 use SimpleXMLElement;
 

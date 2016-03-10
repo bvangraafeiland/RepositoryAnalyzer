@@ -9,7 +9,7 @@ namespace App\Checkers;
  */
 class JavaScriptChecker extends ProjectChecker
 {
-    protected $buildFile;
+    protected $buildFiles = [];
     protected $packageArray;
     protected $dependenciesJSON;
 
@@ -20,10 +20,10 @@ class JavaScriptChecker extends ProjectChecker
         $this->dependenciesJSON = $this->getCombinedDependenciesJSON();
 
         if ($this->project->usesBuildTool('grunt')) {
-            $this->buildFile = $this->project->getFile('Gruntfile.js');
+            $this->buildFiles[] = $this->project->getFile('Gruntfile.js');
         }
-        elseif ($this->project->usesBuildTool('gulp')) {
-            $this->buildFile = $this->project->getFile('gulpfile.js');
+        if ($this->project->usesBuildTool('gulp')) {
+            $this->buildFiles[] = $this->project->getFile('gulpfile.js');
         }
 
         $jshint = $this->checkJSHint();
@@ -37,7 +37,7 @@ class JavaScriptChecker extends ProjectChecker
     {
         $jshintConfigFile = in_array('.jshintrc', $this->projectRootFiles) || array_has($this->packageArray, 'jshintConfig');
         $jshintDependency = str_contains($this->dependenciesJSON, 'jshint');
-        $jshintBuildTask = codeContains($this->buildFile, 'jshint');
+        $jshintBuildTask = $this->buildFilesContain('jshint');
 
         return $this->attachASAT('jshint', $jshintConfigFile, $jshintDependency, $jshintBuildTask);
     }
@@ -46,7 +46,7 @@ class JavaScriptChecker extends ProjectChecker
     {
         $jscsConfigFile = in_array('.jscsrc', $this->projectRootFiles) || array_has($this->packageArray, 'jscsConfig');
         $jscsDependency = str_contains($this->dependenciesJSON, 'jscs');
-        $jscsBuildTask = codeContains($this->buildFile, 'jscs');
+        $jscsBuildTask = $this->buildFilesContain('jscs');
 
         return $this->attachASAT('jscs', $jscsConfigFile, $jscsDependency, $jscsBuildTask);
     }
@@ -55,7 +55,7 @@ class JavaScriptChecker extends ProjectChecker
     {
         $eslintConfigFile = (bool) array_intersect(['.eslintrc', '.eslintrc.js', '.eslintrc.json', '.eslintrc.yml', '.eslintrc.yaml'], $this->projectRootFiles) || array_has($this->packageArray, 'eslintConfig');
         $eslintDependency = str_contains($this->dependenciesJSON, 'eslint');
-        $eslintBuildTask = codeContains($this->buildFile, 'eslint');
+        $eslintBuildTask = $this->buildFilesContain('eslint');
 
         return $this->attachASAT('eslint', $eslintConfigFile, $eslintDependency, $eslintBuildTask);
     }
@@ -65,6 +65,13 @@ class JavaScriptChecker extends ProjectChecker
         $dependencies = array_get($this->packageArray, 'dependencies', []);
         $devDependencies = array_get($this->packageArray, 'devDependencies', []);
         return json_encode($dependencies) . json_encode($devDependencies);
+    }
+
+    protected function buildFilesContain($string)
+    {
+        return (bool) array_first($this->buildFiles, function($key, $value) use ($string) {
+            return codeContains($value, $string);
+        });
     }
 
     protected function getBuildTools()

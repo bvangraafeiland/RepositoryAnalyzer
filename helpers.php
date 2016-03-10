@@ -15,6 +15,11 @@ function buildSearchQuery($lang, $year, $lastPush, $numStars) {
     return "language:$lang created:\"$year-01-01 .. $year-12-31\" pushed:>=$lastPush stars:>=$numStars";
 }
 
-function codeContains($code, $text, $comment = "//") {
-    return str_contains(preg_replace("%$comment.+%", "", $code), $text);
+function codeContains($code, $string, $regex = false, $comment = "//") {
+    $codeWithoutComments = preg_replace("%$comment.+%", "", $code);
+
+    if ($regex)
+        return (bool) preg_match($string, $code);
+
+    return str_contains($codeWithoutComments, $string);
 }
