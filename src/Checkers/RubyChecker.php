@@ -28,6 +28,7 @@ class RubyChecker extends ProjectChecker
     protected function findGemspecFile(array $filenames)
     {
         foreach ($filenames as $filename) {
+            // Gemspec file may be prefixed with project name but doesn't have to be
             if (preg_match("%(.*).gemspec%", $filename))
                 return $filename;
         }

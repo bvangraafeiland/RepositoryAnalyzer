@@ -11,9 +11,11 @@ class PythonChecker extends ProjectChecker
 {
     public function doLanguageSpecificProcessing()
     {
+        // Tox can also install dependencies
+        $mentionedInTox = $this->rootFileContains('tox.ini', 'pylint');
         $hasConfigFile = (bool) array_intersect($this->projectRootFiles, ['pylintrc', '.pylintrc']);
-        $hasDependency = $this->rootFileContains('setup.py', 'pylint') || $this->rootFileContains('requirements.txt', 'pylint');
-        $hasBuildTask = $this->rootFileContains('tox.ini', 'pylint') || $this->rootFileContains('Makefile', 'pylint');
+        $hasDependency = $mentionedInTox || $this->rootFileContains('setup.py', 'pylint') || $this->rootFileContains('requirements.txt', 'pylint');
+        $hasBuildTask = $mentionedInTox || $this->rootFileContains('Makefile', 'pylint');
 
         return $this->attachASAT('pylint', $hasConfigFile, $hasDependency, $hasBuildTask);
     }
