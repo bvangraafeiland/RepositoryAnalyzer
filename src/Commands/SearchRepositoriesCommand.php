@@ -1,6 +1,7 @@
 <?php
 namespace App\Commands;
 
+use App\Exceptions\TooManyResultsException;
 use App\Repository;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -32,16 +33,12 @@ class SearchRepositoriesCommand extends ApiUsingCommand
         $numStars = $input->getOption('stars');
         $lang = $input->getArgument('language');
 
-        $queryString = buildSearchQuery($lang, $year, $lastPush, $numStars);
-        $output->writeln("Search query: <info>'$queryString'</info>");
-
         if ($input->getOption('just-count')) {
-            $numResults = $this->github->countRepositories($queryString);
+            $numResults = $this->github->searchRepositories(buildSearchQuery($lang, $year, $lastPush, $numStars), true);
             $output->writeln("<comment>$numResults found</comment>");
         }
         else {
-            // int total_count, bool incomplete_results, array items
-            $results = $this->github->searchRepositories($queryString);
+            $results = $this->getAllRepositories($lang, $year, $lastPush, $numStars);
             $this->storeRepositories($results);
         }
     }
@@ -51,6 +48,37 @@ class SearchRepositoriesCommand extends ApiUsingCommand
         // save to db
         foreach ($items as $item) {
             Repository::addIfNew($item);
+        }
+    }
+
+    /**
+     * @param $lang
+     * @param $year
+     * @param $lastPush
+     * @param $numStars
+     *
+     * @return array
+     * @throws TooManyResultsException
+     * @throws \App\Exceptions\GitHubException
+     */
+    protected function getAllRepositories($lang, $year, $lastPush, $numStars)
+    {
+        try {
+            $query = buildSearchQuery($lang, $year, $lastPush, $numStars);
+            return $this->github->searchRepositories($query);
+        } catch (TooManyResultsException $e) {
+            $this->output->writeln("<error>Too many search results!</error>");
+            $this->output->writeln("<comment>Splitting in two separate searches...</comment>");
+
+            $firstQuery = buildSearchQuery($lang, $year, $lastPush, $numStars, '01-01', '06-30');
+            $firstResults = $this->github->searchRepositories($firstQuery);
+
+            $secondQuery = buildSearchQuery($lang, $year, $lastPush, $numStars, '07-01', '12-31');
+            $secondResults = $this->github->searchRepositories($secondQuery);
+
+            $results = array_merge($firstResults, $secondResults);
+
+            return $results;
         }
     }
 }

@@ -14,18 +14,18 @@ use App\Parsers\MavenParser;
  */
 class JavaChecker extends ProjectChecker
 {
-    protected $buildConfigParsers = [];
+    protected $buildConfigs = [];
 
     public function doLanguageSpecificProcessing()
     {
         if ($this->project->usesBuildTool('maven')) {
-            $this->buildConfigParsers[] = new MavenParser($this->project->getFile('pom.xml'));
+            $this->buildConfigs[] = new MavenParser($this->project->getFile('pom.xml'));
         }
         if ($this->project->usesBuildTool('ant')) {
-            $this->buildConfigParsers[] = new AntParser($this->project->getFile('build.xml'));
+            $this->buildConfigs[] = new AntParser($this->project->getFile('build.xml'));
         }
         if ($this->project->usesBuildTool('gradle')) {
-            $this->buildConfigParsers[] = new GradleParser($this->project->getFile('build.gradle'));
+            $this->buildConfigs[] = new GradleParser($this->project->getFile('build.gradle'));
         }
 
         $checkstyle = $this->checkFor('checkstyle');
@@ -38,14 +38,18 @@ class JavaChecker extends ProjectChecker
     {
         $dependency = $this->anyConfigDependenciesInclude($tool);
         $buildTask = $this->anyBuildIncludes($tool);
-        $customConfigFile = $this->anyCustomConfigSpecifiedFor($tool) || $this->{'projectContains'.ucfirst($tool).'File'}();
+        $customConfigFile = $this->anyCustomConfigSpecifiedFor($tool);
+        // || $this->{'projectContains'.ucfirst($tool).'File'}();
+        // too slow, if configuration is not specified in build then assume it's not used
 
-        return $this->attachASAT('checkstyle', $customConfigFile, $dependency, $buildTask);
+        //dd($tool, $dependency, $buildTask, $customConfigFile);
+
+        return $this->attachASAT($tool, $customConfigFile, $dependency, $buildTask);
     }
 
     protected function anyBuildConfig(callable $callback)
     {
-        return (bool) array_first($this->buildConfigParsers, $callback);
+        return (bool) array_first($this->buildConfigs, $callback);
     }
 
     protected function anyCustomConfigSpecifiedFor($tool)

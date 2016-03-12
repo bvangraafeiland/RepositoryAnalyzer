@@ -11,8 +11,8 @@ function progressBar(OutputInterface $output, $max) {
     return $bar;
 }
 
-function buildSearchQuery($lang, $year, $lastPush, $numStars) {
-    return "language:$lang created:\"$year-01-01 .. $year-12-31\" pushed:>=$lastPush stars:>=$numStars";
+function buildSearchQuery($lang, $year, $lastPush, $numStars, $start = '01-01', $end = '12-31') {
+    return "language:$lang created:\"$year-$start .. $year-$end\" pushed:>=$lastPush stars:>=$numStars";
 }
 
 function codeContains($code, $string, $regex = false, $comment = "//") {

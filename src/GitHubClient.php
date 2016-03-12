@@ -1,6 +1,7 @@
 <?php
 namespace App;
 
+use App\Exceptions\GitHubException;
 use App\Exceptions\TooManyResultsException;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
@@ -54,30 +55,31 @@ class GitHubClient
         return $this->asArray('/rate_limit')['resources'];
     }
 
-    public function searchRepositories($query)
+    public function searchRepositories($query, $justCount = false)
     {
+        $this->output->writeln("Search query: <info>'$query'</info>");
+
+        // int total_count, bool incomplete_results, array items
         $firstChunk = $this->asArray('/search/repositories', [
             'query' => ['q' => $query, 'per_page' => 100]
         ]);
         $numResults = $firstChunk['total_count'];
-        $this->output->writeln("<comment>$numResults found.</comment>");
 
-        if ($numResults > 1000 || $firstChunk['incomplete_results']) {
-            throw new TooManyResultsException('Too many or incomplete results!');
+        if ($justCount)
+            return $numResults;
+
+        $this->output->writeln("<comment>$numResults found.</comment>");
+        if ($numResults > 1000) {
+            throw new TooManyResultsException("Too many search results: $numResults");
         };
+
+        if ($firstChunk['incomplete_results']) {
+            throw new GitHubException("Incomplete search results. Narrow down query.");
+        }
 
         $remainingResults = $this->followPages();
 
         return array_merge($firstChunk['items'], $remainingResults);
-    }
-
-    public function countRepositories($query)
-    {
-        $result = $this->asArray('/search/repositories', [
-            'query' => ['q' => $query]
-        ]);
-
-        return $result['total_count'];
     }
 
     public function getRepository($name)

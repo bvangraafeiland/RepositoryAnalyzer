@@ -32,17 +32,22 @@ class ProcessProjectsCommand extends ApiUsingCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $constraints = ['language' => $input->getArgument('language')];
+        $language = $input->getArgument('language');
+        $constraints = ['language' => $language];
+        $message = "Gathering ASAT data for $language projects";
 
         if ($repoName = $input->getOption('repository')) {
             $constraints['full_name'] = $repoName;
+            $message = "Gathering ASAT data for $repoName";
         }
 
         if ($year = $input->getArgument('year')) {
             $constraints[] = ['created_at', '>=', "$year-01-01"];
             $constraints[] = ['created_at', '<=', "$year-12-31"];
+            $message .= " created in $year";
         }
 
+        $output->writeln("<comment>$message</comment>");
         $this->processProjects($constraints);
     }
 
