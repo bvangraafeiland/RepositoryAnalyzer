@@ -1,5 +1,6 @@
 <?php
 
+use App\Repository;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -22,4 +23,14 @@ function codeContains($code, $string, $regex = false, $comment = "//") {
         return (bool) preg_match($string, $code);
 
     return str_contains($codeWithoutComments, $string);
+}
+
+function cloneRepository($name, $baseDir = null) {
+    $baseDir = $baseDir ?: PROJECT_DIR . '/repositories';
+    if (!file_exists($baseDir)) {
+        mkdir($baseDir);
+    }
+    exec(trim("cd $baseDir && git clone git@github.com:$name.git $name"), $output, $returnCode);
+
+    return [$returnCode, $output];
 }

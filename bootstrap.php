@@ -1,12 +1,15 @@
 <?php
 use App\Commands\AddRepositoryCommand;
 use App\Commands\AutoCollectCommand;
+use App\Commands\CloneRepositoryCommand;
 use App\Commands\ProcessProjectsCommand;
 use App\Commands\CheckRateLimitCommand;
 use App\Commands\MigrateDatabaseCommand;
 use App\Commands\SearchRepositoriesCommand;
 use App\Commands\TinkerCommand;
 use Symfony\Component\Console\Application;
+
+define('PROJECT_DIR', __DIR__);
 
 $dotenv = new Dotenv\Dotenv(__DIR__);
 $dotenv->load();
@@ -33,5 +36,6 @@ $application->addCommands([
     new AutoCollectCommand,
     new ProcessProjectsCommand,
     new AddRepositoryCommand,
+    new CloneRepositoryCommand,
     new TinkerCommand
 ]);
