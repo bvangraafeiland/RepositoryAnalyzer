@@ -32,5 +32,5 @@ function cloneRepository($name, $baseDir = null) {
     }
     exec(trim("cd $baseDir && git clone git@github.com:$name.git $name"), $output, $returnCode);
 
-    return [$returnCode, $output];
+    return $returnCode;
 }
