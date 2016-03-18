@@ -53,6 +53,12 @@ class ProcessProjectsCommand extends ApiUsingCommand
 
     protected function processProjects($constraints)
     {
+        //$constraints['asat_in_build_tool'] = true;
+        /*
+        ->whereHas('asats', function($query) {
+            $query->where('in_dev_dependencies', false);
+        })
+         */
         $projects = Repository::where($constraints)->get();
         $count = count($projects);
         $this->output->writeln("$count projects found");

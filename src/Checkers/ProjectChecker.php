@@ -100,7 +100,7 @@ abstract class ProjectChecker
         $this->project->asats()->attach($tool, $flags);
 
         // When multiple ASATs are used, set this to true if any of them are used in the build tool.
-        $this->project->asat_in_build_tool = $this->project->asat_in_build_tool || $in_build_tool;
+        $this->project->asat_in_build_tool = ($this->project->isDirty('asat_in_build_tool') && $this->project->asat_in_build_tool) || $in_build_tool;
 
         return true;
     }

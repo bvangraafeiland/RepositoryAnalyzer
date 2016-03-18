@@ -5,6 +5,7 @@ use App\Commands\CloneRepositoryCommand;
 use App\Commands\ProcessProjectsCommand;
 use App\Commands\CheckRateLimitCommand;
 use App\Commands\MigrateDatabaseCommand;
+use App\Commands\RunAsatCommand;
 use App\Commands\SearchRepositoriesCommand;
 use App\Commands\TinkerCommand;
 use Symfony\Component\Console\Application;
@@ -37,5 +38,6 @@ $application->addCommands([
     new ProcessProjectsCommand,
     new AddRepositoryCommand,
     new CloneRepositoryCommand,
+    new RunAsatCommand,
     new TinkerCommand
 ]);

@@ -20,10 +20,10 @@ class JavaScriptChecker extends ProjectChecker
         $this->dependenciesJSON = $this->getCombinedDependenciesJSON();
 
         if ($this->project->usesBuildTool('grunt')) {
-            $this->buildFiles[] = $this->project->getFile('Gruntfile.js');
+            $this->buildFiles['grunt'] = $this->project->getFile('Gruntfile.js');
         }
         if ($this->project->usesBuildTool('gulp')) {
-            $this->buildFiles[] = $this->project->getFile('gulpfile.js');
+            $this->buildFiles['gulp'] = $this->project->getFile('gulpfile.js');
         }
 
         $jshint = $this->checkJSHint();
@@ -64,12 +64,15 @@ class JavaScriptChecker extends ProjectChecker
     {
         $dependencies = array_get($this->packageArray, 'dependencies', []);
         $devDependencies = array_get($this->packageArray, 'devDependencies', []);
-        return json_encode($dependencies) . json_encode($devDependencies);
+        $optionalDependencies = array_get($this->packageArray, 'optionalDependencies', []);
+        return json_encode($dependencies) . json_encode($devDependencies) . json_encode($optionalDependencies);
     }
 
     protected function buildFilesContain($string)
     {
         return (bool) array_first($this->buildFiles, function($key, $value) use ($string) {
+            // Not always appropriate, e.g. react
+            //$term = $key == 'gulp' ? "$string(" : "$string:";
             return codeContains($value, $string);
         });
     }
