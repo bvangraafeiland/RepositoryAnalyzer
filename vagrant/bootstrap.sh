@@ -24,4 +24,4 @@ gem install rubocop
 gem install bundler
 
 ## JavaScript
-npm install -g grunt-cli
+npm install -g grunt-cli jshint jscs eslint

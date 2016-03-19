@@ -15,7 +15,7 @@ class JavaScriptToolRunner extends ToolRunner
 
         exec("$buildTool eslint", $output, $exitCode);
 
-        dd($output[0]);
+        dd($output);
     }
 
     protected function runJshint()
@@ -43,9 +43,8 @@ class JavaScriptToolRunner extends ToolRunner
         return 'gulp';
     }
 
-    protected function installDependencies()
+    protected function installDependenciesCommand()
     {
-        //TODO update virtualbox
-        exec('npm install');
+        return 'npm install';
     }
 }

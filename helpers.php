@@ -24,12 +24,16 @@ function codeContains($code, $string, $regex = false, $comment = "//") {
     return str_contains($codeWithoutComments, $string);
 }
 
-function cloneRepository($name, $baseDir = null) {
-    $baseDir = $baseDir ?: PROJECT_DIR . '/repositories';
-    if (!file_exists($baseDir)) {
-        mkdir($baseDir);
-    }
-    exec(trim("cd $baseDir && git clone git://github.com/$name.git $name"), $output, $returnCode);
+function cloneRepository($name) {
+    $directory = absoluteRepositoriesDir();
 
+    if (!file_exists($directory)) {
+        mkdir($directory);
+    }
+    exec("cd $directory && git clone git://github.com/$name.git $name", $output, $returnCode);
     return $returnCode;
+}
+
+function absoluteRepositoriesDir() {
+    return getenv('HOME') . '/' . getenv('REPOSITORIES_DIR');
 }

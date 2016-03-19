@@ -9,7 +9,7 @@ namespace App\Runners;
  */
 class PythonToolRunner extends ToolRunner
 {
-    protected function installDependencies()
+    protected function installDependenciesCommand()
     {
         // TODO: Implement installDependencies() method.
     }

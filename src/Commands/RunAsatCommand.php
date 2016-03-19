@@ -6,6 +6,8 @@ use App\Runners\JavaScriptToolRunner;
 use App\Runners\JavaToolrunner;
 use App\Runners\PythonToolRunner;
 use App\Runners\RubyToolRunner;
+use App\Runners\ToolRunner;
+use InvalidArgumentException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -24,39 +26,42 @@ class RunAsatCommand extends Command
         $this->setName('analyze:repo')->setDescription('Runs ASATs over the given repository');
 
         $this->addArgument('repository', InputArgument::REQUIRED, 'The repository to analyze');
+            //->addArgument('tools', InputArgument::IS_ARRAY|InputArgument::OPTIONAL, 'Run only these ASATs');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $repo = Repository::whereFullName($input->getArgument('repository'))->firstOrFail();
+        $runner = $this->getRunnerFor($repo);
         foreach ($repo->asats as $asat) {
             $output->writeln("<comment>Running $asat->name...</comment>");
-            $result = $this->{'analyze' . ucfirst($repo->language)}($asat->name, $repo);
+            $result = $runner->run($asat->name);
             $output->writeln('<info>Analysis complete, ' . $result['summary']['offense_count'] . ' violations detected</info>');
         }
     }
 
-    protected function analyzeRuby($tool, Repository $repo)
+    /**
+     * @param Repository $repository
+     *
+     * @return ToolRunner
+     */
+    protected function getRunnerFor(Repository $repository)
     {
-        $runner = new RubyToolRunner($repo);
-        return $runner->run($tool);
-    }
+        switch (strtolower($repository->language)) {
+            case 'ruby':
+                return new RubyToolRunner($repository);
+            break;
+            case 'javascript':
+                return new JavaScriptToolRunner($repository);
+            break;
+            case 'java':
+                return new JavaToolrunner($repository);
+            break;
+            case 'python':
+                return new PythonToolRunner($repository);
+            break;
+        }
 
-    protected function analyzeJavascript($tool, Repository $repository)
-    {
-        $runner = new JavaScriptToolRunner($repository);
-        return $runner->run($tool);
-    }
-
-    protected function analyzePython($tool, Repository $repository)
-    {
-        $runner = new PythonToolRunner($repository);
-        return $runner->run($tool);
-    }
-
-    protected function analyzeJava($tool, Repository $repository)
-    {
-        $runner = new JavaToolrunner($repository);
-        return $runner->run($tool);
+        throw new InvalidArgumentException('No tool runner is defined for this repository.');
     }
 }

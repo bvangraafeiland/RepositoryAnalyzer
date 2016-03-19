@@ -14,6 +14,7 @@ define('PROJECT_DIR', __DIR__);
 
 $dotenv = new Dotenv\Dotenv(__DIR__);
 $dotenv->load();
+$dotenv->required('REPOSITORIES_DIR');
 
 $db = new Illuminate\Database\Capsule\Manager();
 $db->addConnection([

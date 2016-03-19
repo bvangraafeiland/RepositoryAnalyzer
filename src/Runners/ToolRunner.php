@@ -18,13 +18,14 @@ abstract class ToolRunner
     protected $repository;
     protected $projectDir;
     protected $buildTool;
+    protected $dependenciesInstalled;
 
     public function __construct(Repository $repository)
     {
         $this->repository = $repository;
-        $this->projectDir = PROJECT_DIR . '/repositories/' . $repository->full_name;
+        $this->projectDir = absoluteRepositoriesDir() . '/' . $repository->full_name;
         $this->buildTool = $this->getBuildTool();
-
+        $this->dependenciesInstalled = false;
     }
 
     public function run($tool)
@@ -33,6 +34,7 @@ abstract class ToolRunner
         if (!$changedDir) {
             throw new InvalidArgumentException("Project directory {$this->repository->full_name} does not exist!");
         }
+
         $this->installDependencies();
 
         return $this->{'run' . ucfirst($tool)}();
@@ -49,10 +51,19 @@ abstract class ToolRunner
         return null;
     }
 
-    abstract protected function installDependencies();
+    protected function installDependencies()
+    {
+        if (!$this->dependenciesInstalled) {
+            system($this->installDependenciesCommand(), $exitCode);
+            $this->dependenciesInstalled = $exitCode === 0;
+        }
+    }
+
+    // TODO dependencies needed? probably not if running tools directly
+    abstract protected function installDependenciesCommand();
 
     // go to repo dir
-    // figure out whether asat can be run as build tool task
+    // figure out whether asat can be run as build tool task (edit: probably not the best idea)
     // if so, run as build tool task
     // else, extract configuration file and pass that as argument to run the asat directly if necessary
 

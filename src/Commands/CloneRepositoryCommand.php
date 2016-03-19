@@ -1,6 +1,7 @@
 <?php
 namespace App\Commands;
 
+use App\Repository;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -20,8 +21,10 @@ class CloneRepositoryCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $repoName = $input->getArgument('repo');
+        $repo = Repository::whereFullName($repoName)->firstOrFail();
         $output->writeln('<comment>Cloning repository...</comment>');
-        $result = cloneRepository($input->getArgument('repo'));
+        $result = cloneRepository($repo->full_name);
         $message = ($result === 0) ? '<info>Successfully cloned!</info>' : "<error>Something went wrong. Exit code: $result</error>";
         $output->writeln($message);
     }

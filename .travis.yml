@@ -9,4 +9,4 @@ sudo: false
 install:
   - composer install --no-interaction --prefer-source
 
-script: vendor/bin/phpmd src text codesize,naming,design
+script: vendor/bin/phpmd src text phpmd.xml

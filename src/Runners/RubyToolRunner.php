@@ -30,8 +30,8 @@ class RubyToolRunner extends ToolRunner
         return 'rubocop';
     }
 
-    protected function installDependencies()
+    protected function installDependenciesCommand()
     {
-        exec("bundle install");
+        return 'bundle install';
     }
 }
