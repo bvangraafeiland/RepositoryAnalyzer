@@ -12,7 +12,7 @@ class RubyToolRunner extends ToolRunner
     protected function runRubocop()
     {
         // Can't pass formatter options to Rake task
-        exec("bundle exec rubocop --format json", $output, $exitCode);
+        exec("rubocop --format json", $output, $exitCode);
 
         return json_decode($output[0], true);
     }
@@ -21,17 +21,25 @@ class RubyToolRunner extends ToolRunner
      * Retrieve the name of the task that runs RuboCop from the Rakefile
      * @return string
      */
-    protected function getRuboCopTask()
-    {
-        $rakefile = file_get_contents($this->projectDir . '/Rakefile');
-        if (preg_match('%RuboCop::RakeTask\.new\(:(.+)\)%', $rakefile, $matches))
-            return $matches[1];
+    //protected function getRuboCopTask()
+    //{
+    //    $rakefile = file_get_contents($this->projectDir . '/Rakefile');
+    //    if (preg_match('%RuboCop::RakeTask\.new\(:(.+)\)%', $rakefile, $matches))
+    //        return $matches[1];
+    //
+    //    return 'rubocop';
+    //}
+    //
+    //protected function installDependenciesCommand()
+    //{
+    //    return 'bundle install';
+    //}
 
-        return 'rubocop';
-    }
-
-    protected function installDependenciesCommand()
+    /**
+     * @inheritdoc
+     */
+    public function numberOfWarnings($tool)
     {
-        return 'bundle install';
+        return $this->results[$tool]['summary']['offense_count'];
     }
 }

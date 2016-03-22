@@ -13,7 +13,7 @@ class JavaScriptToolRunner extends ToolRunner
     {
         $buildTool = $this->getBuildTool();
 
-        exec("$buildTool eslint", $output, $exitCode);
+        exec("eslint src --format json", $output, $exitCode);
 
         dd($output);
     }
@@ -34,7 +34,7 @@ class JavaScriptToolRunner extends ToolRunner
             return $default;
         }
 
-        $readmeContents = file_get_contents($this->projectDir . '/readme.md');
+        $readmeContents = @file_get_contents($this->projectDir . '/readme.md');
 
         if ($readmeContents && str_contains($readmeContents, 'grunt')) {
             return 'grunt';
@@ -46,5 +46,15 @@ class JavaScriptToolRunner extends ToolRunner
     protected function installDependenciesCommand()
     {
         return 'npm install';
+    }
+
+    /**
+     * @param $tool
+     *
+     * @return mixed
+     */
+    public function numberOfWarnings($tool)
+    {
+        // TODO: Implement numberOfWarnings() method.
     }
 }

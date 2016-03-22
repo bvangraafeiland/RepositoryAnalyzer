@@ -25,18 +25,19 @@ class RunAsatCommand extends Command
     {
         $this->setName('analyze:repo')->setDescription('Runs ASATs over the given repository');
 
-        $this->addArgument('repository', InputArgument::REQUIRED, 'The repository to analyze');
-            //->addArgument('tools', InputArgument::IS_ARRAY|InputArgument::OPTIONAL, 'Run only these ASATs');
+        $this->addArgument('repository', InputArgument::REQUIRED, 'The repository to analyze')
+            ->addArgument('tools', InputArgument::IS_ARRAY|InputArgument::OPTIONAL, 'Run only these ASATs');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $repo = Repository::whereFullName($input->getArgument('repository'))->firstOrFail();
         $runner = $this->getRunnerFor($repo);
-        foreach ($repo->asats as $asat) {
-            $output->writeln("<comment>Running $asat->name...</comment>");
-            $result = $runner->run($asat->name);
-            $output->writeln('<info>Analysis complete, ' . $result['summary']['offense_count'] . ' violations detected</info>');
+        $asats = $input->getArgument('tools') ?: $repo->asats->pluck('name');
+        foreach ($asats as $asatName) {
+            $output->writeln("<comment>Running $asatName...</comment>");
+            $runner->run($asatName);
+            $output->writeln('<info>Analysis complete, ' . $runner->numberOfWarnings($asatName) . ' violations detected</info>');
         }
     }
 
