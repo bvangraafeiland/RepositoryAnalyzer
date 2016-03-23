@@ -13,9 +13,19 @@ class JavaScriptToolRunner extends ToolRunner
     {
         $buildTool = $this->getBuildTool();
 
-        exec("eslint src --format json", $output, $exitCode);
+        if ($buildTool == 'grunt') {
 
-        dd($output);
+        }
+        elseif ($buildTool == 'gulp') {
+
+        }
+        else {
+            $target = '.';
+        }
+
+        exec("eslint $target --format json", $output, $exitCode);
+
+        return json_decode($output[0], true);
     }
 
     protected function runJshint()
@@ -36,11 +46,15 @@ class JavaScriptToolRunner extends ToolRunner
 
         $readmeContents = @file_get_contents($this->projectDir . '/readme.md');
 
-        if ($readmeContents && str_contains($readmeContents, 'grunt')) {
+        if (str_contains($readmeContents, 'grunt')) {
             return 'grunt';
         }
 
-        return 'gulp';
+        if (str_contains($readmeContents, 'gulp')) {
+            return 'gulp';
+        }
+
+        return null;
     }
 
     protected function installDependenciesCommand()
