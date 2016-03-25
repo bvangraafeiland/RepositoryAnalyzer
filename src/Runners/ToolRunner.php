@@ -34,10 +34,10 @@ abstract class ToolRunner
         if (!$changedDir) {
             throw new InvalidArgumentException("Project directory {$this->repository->full_name} does not exist, clone it first!");
         }
-        $this->results[$tool] = $this->getAsatResults($tool);
+        $this->results[$tool] = $this->getResults($tool);
     }
 
-    abstract protected function getAsatResults($tool);
+    abstract protected function getResults($tool);
 
     abstract public function numberOfWarnings($tool);
 
@@ -48,6 +48,24 @@ abstract class ToolRunner
             return $buildTools->first()->name;
         }
         return null;
+    }
+
+    /**
+     * @param array $output
+     *
+     * @return array
+     */
+    protected function jsonOutputToArray(array $output)
+    {
+        $results = [];
+        foreach ($output as $lineNumber => $line) {
+            $decodedLine = json_decode($line, true);
+            if (is_array($decodedLine)) {
+                $results = array_merge($results, $decodedLine);
+            }
+        }
+
+        return $results;
     }
 
     // TODO

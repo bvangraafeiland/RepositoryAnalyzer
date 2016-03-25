@@ -20,8 +20,4 @@ rbenv install 2.3.0 --verbose
 rbenv global 2.3.0
 rbenv rehash
 
-gem install rubocop
-gem install bundler
-
-## JavaScript
-npm install -g grunt-cli jshint jscs eslint
+gem install rubocop rake

@@ -11,8 +11,12 @@ use Exception;
  */
 class JavaScriptToolRunner extends ToolRunner
 {
-    protected function getAsatResults($asatName)
+    protected function getResults($asatName)
     {
+        if (! in_array($this->buildTool, ['grunt', 'gulp'])) {
+            throw new Exception('Only projects using grunt or gulp are supported');
+        }
+
         exec('node ' . PROJECT_DIR . "/javascript/run_tool.js $this->buildTool $asatName $this->projectDir", $output, $exitCode);
 
         if ($exitCode !== 0) {
@@ -20,14 +24,7 @@ class JavaScriptToolRunner extends ToolRunner
             throw new Exception("$this->buildTool analyzer exited with code $exitCode");
         }
 
-        $results = [];
-        foreach ($output as $lineNumber => $line) {
-            $decodedLine = json_decode($line, true);
-            if (is_array($decodedLine))
-                $results = array_merge($results, $decodedLine);
-        }
-
-        return $results;
+        return $this->jsonOutputToArray($output);
     }
 
     protected function getBuildTool()

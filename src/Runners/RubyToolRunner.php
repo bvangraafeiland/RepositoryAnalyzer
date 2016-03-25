@@ -1,6 +1,8 @@
 <?php
 namespace App\Runners;
 
+use Exception;
+
 /**
  * Created by PhpStorm.
  * User: Bastiaan
@@ -9,31 +11,21 @@ namespace App\Runners;
  */
 class RubyToolRunner extends ToolRunner
 {
-    protected function runRubocop()
+    protected function getResults($tool)
     {
-        // Can't pass formatter options to Rake task
-        exec("rubocop --format json", $output, $exitCode);
+        if (! $this->buildTool == 'rake') {
+            throw new Exception('Only projects using rake are supported');
+        }
 
-        return json_decode($output[0], true);
+        exec('ruby ' . PROJECT_DIR . "/ruby/run_tool.rb $this->projectDir", $output, $exitCode);
+
+        if ($exitCode !== 0) {
+            var_dump($output);
+            throw new Exception("$this->buildTool analyzer exited with code $exitCode");
+        }
+
+        return $this->jsonOutputToArray($output);
     }
-
-    /**
-     * Retrieve the name of the task that runs RuboCop from the Rakefile
-     * @return string
-     */
-    //protected function getRuboCopTask()
-    //{
-    //    $rakefile = file_get_contents($this->projectDir . '/Rakefile');
-    //    if (preg_match('%RuboCop::RakeTask\.new\(:(.+)\)%', $rakefile, $matches))
-    //        return $matches[1];
-    //
-    //    return 'rubocop';
-    //}
-    //
-    //protected function installDependenciesCommand()
-    //{
-    //    return 'bundle install';
-    //}
 
     /**
      * @inheritdoc
