@@ -1,9 +1,10 @@
 module.exports = function (results) {
-    var output = results.map(function (result) {
-        return result.messages.map(function (message) {
-            return {file: result.filePath, message: message.message, rule: message.ruleId};
+    var warnings = [];
+    results.forEach(function (file) {
+        file.messages.forEach(function (message) {
+            warnings.push({file: file.filePath, line: message.line, column: message.column, message: message.message, rule: message.ruleId});
         });
     });
 
-    return JSON.stringify(output);
+    console.log(JSON.stringify(warnings));
 };

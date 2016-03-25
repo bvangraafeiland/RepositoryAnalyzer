@@ -11,30 +11,13 @@ use Exception;
  */
 class JavaScriptToolRunner extends ToolRunner
 {
-    protected $dependenciesInstalled;
-
-    protected function runEslint()
+    protected function getAsatResults($asatName)
     {
-        return $this->getAsatResults($this->buildTool, 'eslint');
-    }
-
-    protected function runJshint()
-    {
-        return $this->getAsatResults($this->buildTool, 'jshint');
-    }
-
-    protected function runJscs()
-    {
-        return $this->getAsatResults($this->buildTool, 'jscs');
-    }
-
-    protected function getAsatResults($buildTool, $asatName)
-    {
-        exec('node ' . PROJECT_DIR . "/javascript/run_tool.js $buildTool $asatName $this->projectDir", $output, $exitCode);
+        exec('node ' . PROJECT_DIR . "/javascript/run_tool.js $this->buildTool $asatName $this->projectDir", $output, $exitCode);
 
         if ($exitCode !== 0) {
             var_dump($output);
-            throw new Exception("$buildTool analyzer exited with code $exitCode");
+            throw new Exception("$this->buildTool analyzer exited with code $exitCode");
         }
 
         $results = [];
@@ -49,8 +32,6 @@ class JavaScriptToolRunner extends ToolRunner
 
     protected function getBuildTool()
     {
-        // temporarily force example project to use gulp
-        // return 'gulp';
         if ($default = parent::getBuildTool()) {
             return $default;
         }

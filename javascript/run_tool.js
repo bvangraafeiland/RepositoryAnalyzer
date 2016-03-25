@@ -2,6 +2,12 @@ var buildTool = process.argv[2];
 var asatName = process.argv[3];
 var projectDir = process.argv[4];
 
+var formatters = {
+    eslint: __dirname + '/eslint_formatter',
+    jshint: __dirname + '/jshint_reporter',
+    jscs: __dirname + '/jscs_reporter'
+};
+
 process.chdir(projectDir);
 
 if (buildTool == 'grunt') {
@@ -9,9 +15,9 @@ if (buildTool == 'grunt') {
     var gruntFile = require(projectDir + '/Gruntfile.js');
     gruntFile(grunt);
 
-    grunt.config.set('eslint.options.format', __dirname + '/eslint_formatter');
-    grunt.config.set('jscs.options.reporter', __dirname + '/jscs_reporter');
-    grunt.config.set('jshint.options.reporter', __dirname + '/jshint_reporter');
+    grunt.config.set('eslint.options.format', formatters.eslint);
+    grunt.config.set('jscs.options.reporter', formatters.jscs);
+    grunt.config.set('jshint.options.reporter', formatters.jshint);
 
     grunt.task.run(asatName).start();
 }
@@ -19,8 +25,7 @@ if (buildTool == 'grunt') {
 else if (buildTool == 'gulp') {
     var gulp = require(projectDir + '/node_modules/gulp');
     var gulpFile = projectDir + '/gulpfile.js';
-
-    var jshint = require(projectDir + '/node_modules/gulp-jshint');
+    var asat = require(projectDir + '/node_modules/gulp-' + asatName);
 
     require(gulpFile);
 
@@ -29,6 +34,8 @@ else if (buildTool == 'gulp') {
         .filter(task => task.fn.toString().includes(asatName + '('));
     var targets = tasks.map(task => task.fn.toString().match(/src\(['"]([^\)]+)["']\)/i)[1]);
 
-    // TODO directly run tool using the extracted targets
-    console.log(targets);
+    targets.forEach(target => {
+        var reporter =  (asatName == 'eslint') ? asat.format(formatters[asatName]) : asat.reporter(formatters[asatName]);
+        gulp.src(target).pipe(asat()).pipe(reporter);
+    });
 }

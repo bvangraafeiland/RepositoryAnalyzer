@@ -18,7 +18,7 @@ abstract class ToolRunner
     protected $repository;
     protected $projectDir;
     protected $buildTool;
-    protected $results;
+    public $results;
 
     public function __construct(Repository $repository)
     {
@@ -34,9 +34,12 @@ abstract class ToolRunner
         if (!$changedDir) {
             throw new InvalidArgumentException("Project directory {$this->repository->full_name} does not exist, clone it first!");
         }
-        
-        $this->results[$tool] = $this->{'run' . ucfirst($tool)}();
+        $this->results[$tool] = $this->getAsatResults($tool);
     }
+
+    abstract protected function getAsatResults($tool);
+
+    abstract public function numberOfWarnings($tool);
 
     protected function getBuildTool()
     {
@@ -46,18 +49,6 @@ abstract class ToolRunner
         }
         return null;
     }
-
-    /**
-     * @param $tool
-     *
-     * @return mixed
-     */
-    abstract public function numberOfWarnings($tool);
-
-    // go to repo dir
-    // figure out whether asat can be run as build tool task (edit: probably not the best idea)
-    // if so, run as build tool task
-    // else, extract configuration file and pass that as argument to run the asat directly if necessary
 
     // TODO
     // - Map output to GDC
