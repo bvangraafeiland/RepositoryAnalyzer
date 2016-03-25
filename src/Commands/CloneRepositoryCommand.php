@@ -2,6 +2,7 @@
 namespace App\Commands;
 
 use App\Repository;
+use Exception;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -25,6 +26,9 @@ class CloneRepositoryCommand extends Command
         $repo = Repository::whereFullName($repoName)->firstOrFail();
         $output->writeln('<comment>Cloning repository...</comment>');
         $result = cloneRepository($repo->full_name);
+        if ($repo->language == 'javascript') {
+            system('npm install');
+        }
         $message = ($result === 0) ? '<info>Successfully cloned!</info>' : "<error>Something went wrong. Exit code: $result</error>";
         $output->writeln($message);
     }

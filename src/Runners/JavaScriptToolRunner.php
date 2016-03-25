@@ -1,6 +1,8 @@
 <?php
 namespace App\Runners;
 
+use Exception;
+
 /**
  * Created by PhpStorm.
  * User: Bastiaan
@@ -9,37 +11,46 @@ namespace App\Runners;
  */
 class JavaScriptToolRunner extends ToolRunner
 {
+    protected $dependenciesInstalled;
+
     protected function runEslint()
     {
-        $buildTool = $this->getBuildTool();
-
-        if ($buildTool == 'grunt') {
-
-        }
-        elseif ($buildTool == 'gulp') {
-
-        }
-        else {
-            $target = '.';
-        }
-
-        exec("eslint $target --format json", $output, $exitCode);
-
-        return json_decode($output[0], true);
+        return $this->getAsatResults($this->buildTool, 'eslint');
     }
 
     protected function runJshint()
     {
-
+        return $this->getAsatResults($this->buildTool, 'jshint');
     }
 
     protected function runJscs()
     {
+        return $this->getAsatResults($this->buildTool, 'jscs');
+    }
 
+    protected function getAsatResults($buildTool, $asatName)
+    {
+        exec('node ' . PROJECT_DIR . "/javascript/run_tool.js $buildTool $asatName $this->projectDir", $output, $exitCode);
+
+        if ($exitCode !== 0) {
+            var_dump($output);
+            throw new Exception("$buildTool analyzer exited with code $exitCode");
+        }
+
+        $results = [];
+        foreach ($output as $lineNumber => $line) {
+            $decodedLine = json_decode($line, true);
+            if (is_array($decodedLine))
+                $results = array_merge($results, $decodedLine);
+        }
+
+        return $results;
     }
 
     protected function getBuildTool()
     {
+        // temporarily force example project to use gulp
+        // return 'gulp';
         if ($default = parent::getBuildTool()) {
             return $default;
         }
@@ -54,12 +65,7 @@ class JavaScriptToolRunner extends ToolRunner
             return 'gulp';
         }
 
-        return null;
-    }
-
-    protected function installDependenciesCommand()
-    {
-        return 'npm install';
+        return $this->repository->buildTools->first()->name;
     }
 
     /**
@@ -69,6 +75,6 @@ class JavaScriptToolRunner extends ToolRunner
      */
     public function numberOfWarnings($tool)
     {
-        // TODO: Implement numberOfWarnings() method.
+        return count($this->results[$tool]);
     }
 }

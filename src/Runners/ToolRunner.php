@@ -18,7 +18,6 @@ abstract class ToolRunner
     protected $repository;
     protected $projectDir;
     protected $buildTool;
-    //protected $dependenciesInstalled;
     protected $results;
 
     public function __construct(Repository $repository)
@@ -27,7 +26,6 @@ abstract class ToolRunner
         $this->projectDir = absoluteRepositoriesDir() . '/' . $repository->full_name;
         $this->buildTool = $this->getBuildTool();
         $this->results = [];
-        //$this->dependenciesInstalled = false;
     }
 
     public function run($tool)
@@ -36,9 +34,7 @@ abstract class ToolRunner
         if (!$changedDir) {
             throw new InvalidArgumentException("Project directory {$this->repository->full_name} does not exist, clone it first!");
         }
-
-        //$this->installDependencies();
-
+        
         $this->results[$tool] = $this->{'run' . ucfirst($tool)}();
     }
 
@@ -48,17 +44,7 @@ abstract class ToolRunner
         if ($buildTools->count() == 1) {
             return $buildTools->first()->name;
         }
-
-        //throw new Exception('Build tool cannot be determined.');
         return null;
-    }
-
-    protected function installDependencies()
-    {
-        //if (!$this->dependenciesInstalled) {
-        //    system($this->installDependenciesCommand(), $exitCode);
-        //    $this->dependenciesInstalled = $exitCode === 0;
-        //}
     }
 
     /**
@@ -67,8 +53,6 @@ abstract class ToolRunner
      * @return mixed
      */
     abstract public function numberOfWarnings($tool);
-
-    //abstract protected function installDependenciesCommand();
 
     // go to repo dir
     // figure out whether asat can be run as build tool task (edit: probably not the best idea)
