@@ -37,9 +37,10 @@ abstract class ToolRunner
         $this->results[$tool] = $this->getResults($tool);
     }
 
-    abstract protected function getResults($tool);
-
-    abstract public function numberOfWarnings($tool);
+    public function numberOfWarnings($tool)
+    {
+        return count($this->results[$tool]);
+    }
 
     protected function getBuildTool()
     {
@@ -67,6 +68,8 @@ abstract class ToolRunner
 
         return $results;
     }
+
+    abstract protected function getResults($tool);
 
     // TODO
     // - Map output to GDC

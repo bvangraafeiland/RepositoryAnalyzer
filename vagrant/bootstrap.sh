@@ -21,3 +21,5 @@ rbenv global 2.3.0
 rbenv rehash
 
 gem install rubocop rake
+
+apt-get install -y maven gradle

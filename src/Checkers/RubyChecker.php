@@ -13,7 +13,7 @@ class RubyChecker extends ProjectChecker
     {
         $hasConfigFile = (bool) $this->project->getFile('.rubocop.yml');
         $hasDependency = $this->project->fileContains('Gemfile', 'rubocop');
-        $hasBuildTask = $this->project->fileContains('Rakefile', 'RuboCop::RakeTask.new') || $this->project->fileContains('Makefile', 'rubocop');
+        $hasBuildTask = $this->existsInProjectFiles('RuboCop::RakeTask.new language:ruby') || $this->project->fileContains('Makefile', 'rubocop');
 
         if (!$hasDependency && $hasBuildTask) {
             // Check for gemspec file, project may be a ruby gem

@@ -9,7 +9,7 @@ use SimpleXMLElement;
  * Date: 07-03-2016
  * Time: 17:42
  */
-abstract class XmlParser
+class XmlParser
 {
     /**
      * @var SimpleXMLElement
@@ -20,5 +20,10 @@ abstract class XmlParser
     {
         $xmlWithoutNamespace = preg_replace('%xmlns="[^"]+"%', '', $xmlContent);
         $this->root = simplexml_load_string($xmlWithoutNamespace);
+    }
+
+    public function xpath($path)
+    {
+        return $this->root->xpath($path);
     }
 }

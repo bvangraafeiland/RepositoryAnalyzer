@@ -45,14 +45,4 @@ class JavaScriptToolRunner extends ToolRunner
 
         return $this->repository->buildTools->first()->name;
     }
-
-    /**
-     * @param $tool
-     *
-     * @return mixed
-     */
-    public function numberOfWarnings($tool)
-    {
-        return count($this->results[$tool]);
-    }
 }
