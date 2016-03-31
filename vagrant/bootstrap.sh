@@ -22,4 +22,5 @@ rbenv rehash
 
 gem install rubocop rake
 
+apt-get install default-jdk
 apt-get install -y maven gradle
