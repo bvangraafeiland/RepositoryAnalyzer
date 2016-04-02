@@ -19,8 +19,11 @@ exec $SHELL
 rbenv install 2.3.0 --verbose
 rbenv global 2.3.0
 rbenv rehash
-
 gem install rubocop rake
 
+# Java
 apt-get install default-jdk
 apt-get install -y maven gradle
+
+# Python
+pip install tox pylint virtualenv

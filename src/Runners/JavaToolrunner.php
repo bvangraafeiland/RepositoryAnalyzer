@@ -34,10 +34,10 @@ class JavaToolrunner extends ToolRunner
         system("rm -f $location");
         exec($buildToolCommand);
 
-        return $this->getMavenResults($tool, $location);
+        return $this->getWarnings($tool, $location);
     }
 
-    protected function getMavenResults($tool, $resultsFileLocation)
+    protected function getWarnings($tool, $resultsFileLocation)
     {
         $xmlContent = file_get_contents($resultsFileLocation);
 
@@ -61,8 +61,8 @@ class JavaToolrunner extends ToolRunner
         $warnings = $fileElement->xpath('error');
         foreach ($warnings as $warning) {
             $attributes = current($warning);
-            $results[] = array_merge(['file' => $file, 'rule' => $attributes['source']],
-                array_only($attributes, ['line', 'column', 'message']));
+            $results[] = ['file' => $file, 'rule' => $attributes['source']]
+                + array_only($attributes, ['line', 'column', 'message']);
         }
     }
 
