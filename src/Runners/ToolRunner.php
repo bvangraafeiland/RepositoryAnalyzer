@@ -18,6 +18,7 @@ abstract class ToolRunner
     protected $repository;
     protected $projectDir;
     protected $buildTool;
+    protected $countPerCategory;
     public $results;
 
     public function __construct(Repository $repository)
@@ -26,6 +27,7 @@ abstract class ToolRunner
         $this->projectDir = absoluteRepositoriesDir() . '/' . $repository->full_name;
         $this->buildTool = $this->getBuildTool();
         $this->results = [];
+        $this->countPerCategory = [];
     }
 
     public function run($tool)
@@ -34,12 +36,19 @@ abstract class ToolRunner
         if (!$changedDir) {
             throw new InvalidArgumentException("Project directory {$this->repository->full_name} does not exist, clone it first!");
         }
-        $this->results[$tool] = $this->getResults($tool);
+
+        $this->results[$tool] = $this->getGCDAugmentedResults($tool);
+        $this->countPerCategory[$tool] = array_count_values(array_pluck($this->results[$tool], 'classification'));
     }
 
     public function numberOfWarnings($tool)
     {
         return count($this->results[$tool]);
+    }
+
+    public function numWarningsPerCategory($tool)
+    {
+        return $this->countPerCategory[$tool];
     }
 
     protected function getBuildTool()
@@ -70,6 +79,17 @@ abstract class ToolRunner
     }
 
     abstract protected function getResults($tool);
+
+    /**
+     * @param $tool
+     */
+    protected function getGCDAugmentedResults($tool)
+    {
+        $mappings = require PROJECT_DIR . "/gdc_mappings/$tool.php";
+        return array_map(function ($result) use ($mappings) {
+            return $result + ['classification' => $mappings[$result['rule']]];
+        }, $this->getResults($tool));
+    }
 
     // TODO
     // - Map output to GDC

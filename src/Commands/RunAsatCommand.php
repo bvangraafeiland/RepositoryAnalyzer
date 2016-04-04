@@ -34,10 +34,13 @@ class RunAsatCommand extends Command
         $repo = Repository::whereFullName($input->getArgument('repository'))->firstOrFail();
         $runner = $this->getRunnerFor($repo);
         $asats = $input->getArgument('tools') ?: $repo->asats->pluck('name');
-        foreach ($asats as $asatName) {
-            $output->writeln("<comment>Running $asatName...</comment>");
-            $runner->run($asatName);
-            $output->writeln('<info>Analysis complete, ' . $runner->numberOfWarnings($asatName) . ' violations detected</info>');
+        foreach ($asats as $tool) {
+            $output->writeln("<comment>Running $tool...</comment>");
+            $runner->run($tool);
+            $output->writeln('<info>Analysis complete, ' . $runner->numberOfWarnings($tool) . ' violations detected:</info>');
+            foreach ($runner->numWarningsPerCategory($tool) as $category => $count) {
+                $output->writeln("<comment>$category: $count error(s)</comment>");
+            }
         }
     }
 

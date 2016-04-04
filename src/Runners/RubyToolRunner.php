@@ -24,14 +24,19 @@ class RubyToolRunner extends ToolRunner
             throw new Exception("$this->buildTool analyzer exited with code $exitCode");
         }
 
-        return $this->jsonOutputToArray($output);
-    }
+        $results = [];
+        foreach ($this->jsonOutputToArray($output)['files'] as $file) {
+            $offenses = $file['offenses'];
+            foreach ($offenses as $offense) {
+                $offenseParts = explode('/', $offense['cop_name']);
+                $rule = end($offenseParts);
+                $results[] = [
+                        'file' => $file['path'],
+                        'rule' => $rule
+                    ] + array_only($offense, ['message']) + array_only($offense['location'], ['line', 'column']);
+            }
+        }
 
-    /**
-     * @inheritdoc
-     */
-    public function numberOfWarnings($tool)
-    {
-        return $this->results[$tool]['summary']['offense_count'];
+        return $results;
     }
 }
