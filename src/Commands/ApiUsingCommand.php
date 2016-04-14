@@ -40,10 +40,10 @@ abstract class ApiUsingCommand extends Command
         $this->input = $input;
         $this->output = $output;
 
-        $this->github = new GitHubClient($this->output);
-
         $this->travis = new Client([
             'base_uri' => 'https://api.travis-ci.org'
         ]);
+
+        $this->github = GitHubClient::getInstance();
     }
 }

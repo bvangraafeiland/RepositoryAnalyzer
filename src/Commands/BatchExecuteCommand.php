@@ -14,7 +14,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  * Date: 19-02-2016
  * Time: 23:03
  */
-class AutoCollectCommand extends Command
+class BatchExecuteCommand extends Command
 {
     protected static $allLanguages = ['java', 'javascript', 'ruby', 'python'];
 

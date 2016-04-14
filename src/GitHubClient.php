@@ -33,6 +33,10 @@ class GitHubClient
      */
     protected $output;
 
+    protected static $instance;
+
+    public $perPage = 100;
+
     public function __construct($output = null)
     {
         $this->github = new Client([
@@ -60,9 +64,7 @@ class GitHubClient
         $this->output->writeln("Search query: <info>'$query'</info>");
 
         // int total_count, bool incomplete_results, array items
-        $firstChunk = $this->asArray('/search/repositories', [
-            'query' => ['q' => $query, 'per_page' => 100]
-        ]);
+        $firstChunk = $this->asArray('/search/repositories', ['query' => ['q' => $query]]);
         $numResults = $firstChunk['total_count'];
 
         if ($justCount)
@@ -119,6 +121,7 @@ class GitHubClient
 
     protected function asArray($uri, $options = [], $method = 'get', $waitForLimitReset = true)
     {
+        $options['query'] = array_get($options, 'query', []) + ['per_page' => $this->perPage];
         $this->lastResponse = $this->requestRespectingRateLimit(function () use ($method, $uri, $options) {
             if ($this->output->isDebug())
                 $this->output->writeln("$method $uri");
@@ -189,5 +192,23 @@ class GitHubClient
     public function getContent($repo, $path = '')
     {
         return $this->asArray("/repos/$repo/contents/$path");
+    }
+
+    public function getPullRequests($repo, $state = 'closed')
+    {
+        return $this->asArray("/repos/$repo/pulls", ['query' => compact('state')]);
+    }
+
+    /**
+     * @return static
+     */
+    public static function getInstance()
+    {
+        return static::$instance;
+    }
+
+    public static function setInstance()
+    {
+        static::$instance = new static;
     }
 }

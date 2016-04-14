@@ -93,22 +93,22 @@ class ProcessProjectsCommand extends ApiUsingCommand
      */
     protected function checkRubyASATS(Repository $project)
     {
-        return (new RubyChecker($project, $this->github))->check();
+        return (new RubyChecker($project))->check();
     }
 
     protected function checkPythonASATS(Repository $project)
     {
-        return (new PythonChecker($project, $this->github))->check();
+        return (new PythonChecker($project))->check();
     }
 
     protected function checkJavascriptASATS(Repository $project)
     {
-        return (new JavaScriptChecker($project, $this->github))->check();
+        return (new JavaScriptChecker($project))->check();
     }
 
     protected function checkJavaASATS(Repository $project)
     {
-        return (new JavaChecker($project, $this->github))->check();
+        return (new JavaChecker($project))->check();
     }
 
     protected function checkTravis(Repository $project)

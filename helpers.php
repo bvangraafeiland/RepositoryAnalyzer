@@ -1,5 +1,9 @@
 <?php
 
+use App\GitHubClient;
+use App\PullRequest;
+use App\Repository;
+use Carbon\Carbon;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -36,4 +40,19 @@ function cloneRepository($name) {
 
 function absoluteRepositoriesDir() {
     return getenv('HOME') . '/' . getenv('REPOSITORIES_DIR');
+}
+
+function fetchPullRequests($repositoryName, $state = 'closed') {
+    $repo = Repository::whereFullName($repositoryName)->firstOrFail();
+    $pulls = GitHubClient::getInstance()->getPullRequests($repo->full_name, $state);
+    foreach ($pulls as $apiAttributes) {
+        $timestamps = collect(['created_at', 'updated_at', 'closed_at', 'merged_at'])->flatMap(function ($column) use ($apiAttributes) {
+            return [$column => array_get($apiAttributes, $column) ? new Carbon($apiAttributes[$column]) : null];
+        })->toArray();
+
+        $pullRequest = PullRequest::findOrNew($apiAttributes['id']);
+        $attributes = array_only($apiAttributes, ['id', 'number', 'state', 'title']) + ['user_id' => $apiAttributes['user']['id']] + $timestamps;
+        $pullRequest->fill($attributes);
+        $repo->pullRequests()->save($pullRequest);
+    }
 }

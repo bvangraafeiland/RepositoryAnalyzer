@@ -26,9 +26,9 @@ abstract class ProjectChecker
 
     protected $projectRootFiles;
 
-    public function __construct(Repository $project, GitHubClient $github)
+    public function __construct(Repository $project)
     {
-        $this->github = $github;
+        $this->github = GitHubClient::getInstance();
         $this->project = $project;
     }
 

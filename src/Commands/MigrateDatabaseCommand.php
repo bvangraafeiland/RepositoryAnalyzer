@@ -64,8 +64,21 @@ class MigrateDatabaseCommand extends Command
             BuildTool::create(['name' => $tool]);
         }
 
-        $output->writeln("Creating pivot tables");
+        $output->writeln("Creating pull requests table");
+        DB::schema()->create('pull_requests', function (Blueprint $table) {
+            $table->integer('id')->unsigned()->primary();
+            $table->integer('number')->unsigned();
+            $table->string('state', 100);
+            $table->string('title');
+            $table->integer('user_id')->unsigned()->index();
+            $table->integer('repository_id')->unsigned()->index();
+            $table->foreign('repository_id')->references('id')->on('repositories')->onDelete('cascade');
+            $table->timestamps();
+            $table->timestamp('merged_at')->nullable();
+            $table->timestamp('closed_at')->nullable();
+        });
 
+        $output->writeln("Creating pivot tables");
         DB::schema()->create('analysis_tool_repository', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('repository_id')->unsigned()->index();
@@ -77,7 +90,6 @@ class MigrateDatabaseCommand extends Command
             $table->boolean('in_build_tool')->index();
             $table->timestamps();
         });
-
         DB::schema()->create('build_tool_repository', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('repository_id')->unsigned()->index();

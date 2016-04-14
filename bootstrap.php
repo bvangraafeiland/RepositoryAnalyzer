@@ -1,6 +1,7 @@
 <?php
 use App\Commands\AddRepositoryCommand;
-use App\Commands\AutoCollectCommand;
+use App\Commands\AnalyzePullRequestsCommand;
+use App\Commands\BatchExecuteCommand;
 use App\Commands\CloneRepositoryCommand;
 use App\Commands\ProcessProjectsCommand;
 use App\Commands\CheckRateLimitCommand;
@@ -8,6 +9,7 @@ use App\Commands\MigrateDatabaseCommand;
 use App\Commands\RunAsatCommand;
 use App\Commands\SearchRepositoriesCommand;
 use App\Commands\TinkerCommand;
+use App\GitHubClient;
 use Symfony\Component\Console\Application;
 
 define('PROJECT_DIR', __DIR__);
@@ -30,15 +32,18 @@ $db->addConnection([
 $db->setAsGlobal();
 $db->bootEloquent();
 
+GitHubClient::setInstance();
+
 $application = new Application('GitHub repository miner');
 $application->addCommands([
     new SearchRepositoriesCommand,
     new MigrateDatabaseCommand,
     new CheckRateLimitCommand,
-    new AutoCollectCommand,
+    new BatchExecuteCommand,
     new ProcessProjectsCommand,
     new AddRepositoryCommand,
     new CloneRepositoryCommand,
     new RunAsatCommand,
+    new AnalyzePullRequestsCommand,
     new TinkerCommand
 ]);

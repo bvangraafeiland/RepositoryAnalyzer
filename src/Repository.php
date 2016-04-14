@@ -6,11 +6,13 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Psr\Http\Message\StreamInterface;
 
 class Repository extends Model
 {
     public $timestamps = false;
+    public $incrementing = false;
 
     protected $fillable = ['id', 'full_name', 'stargazers_count', 'created_at', 'pushed_at', 'language', 'default_branch', 'has_issues', 'open_issues_count'];
 
@@ -35,6 +37,30 @@ class Repository extends Model
     public function buildTools()
     {
         return $this->belongsToMany(BuildTool::class)->withTimestamps();
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function pullRequests()
+    {
+        return $this->hasMany(PullRequest::class);
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function mergedPullRequests()
+    {
+        return $this->pullRequests()->whereNotNull('merged_at');
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function rejectedPullRequests()
+    {
+        return $this->pullRequests()->whereNull('merged_at');
     }
 
     /**

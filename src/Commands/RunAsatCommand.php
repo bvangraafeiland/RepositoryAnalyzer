@@ -39,8 +39,9 @@ class RunAsatCommand extends Command
             $runner->run($tool);
             $output->writeln('<info>Analysis complete, ' . $runner->numberOfWarnings($tool) . ' violations detected:</info>');
             foreach ($runner->numWarningsPerCategory($tool) as $category => $count) {
-                $output->writeln("<comment>$category: $count error(s)</comment>");
+                //$output->writeln("<comment>$category: $count error(s)</comment>");
             }
+            var_dump($runner->results[$tool]);
         }
     }
 
