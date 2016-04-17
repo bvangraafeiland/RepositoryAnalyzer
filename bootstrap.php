@@ -2,10 +2,9 @@
 use App\Commands\AddRepositoryCommand;
 use App\Commands\AnalyzePullRequestsCommand;
 use App\Commands\BatchExecuteCommand;
+use App\Commands\CheckRateLimitCommand;
 use App\Commands\CloneRepositoryCommand;
 use App\Commands\ProcessProjectsCommand;
-use App\Commands\CheckRateLimitCommand;
-use App\Commands\MigrateDatabaseCommand;
 use App\Commands\RunAsatCommand;
 use App\Commands\SearchRepositoriesCommand;
 use App\Commands\TinkerCommand;
@@ -37,7 +36,6 @@ GitHubClient::setInstance();
 $application = new Application('GitHub repository miner');
 $application->addCommands([
     new SearchRepositoriesCommand,
-    new MigrateDatabaseCommand,
     new CheckRateLimitCommand,
     new BatchExecuteCommand,
     new ProcessProjectsCommand,

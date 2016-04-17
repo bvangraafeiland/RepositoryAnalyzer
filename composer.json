@@ -9,7 +9,8 @@
         "illuminate/database": "^5.2",
         "symfony/console": "^3.0",
         "guzzlehttp/guzzle": "~6.0",
-        "psy/psysh": "^0.7.0"
+        "psy/psysh": "^0.7.0",
+        "robmorgan/phinx": "^0.5.3"
     },
     "require-dev": {
         "phpmd/phpmd": "^2.3"

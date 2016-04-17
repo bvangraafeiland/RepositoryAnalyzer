@@ -87,8 +87,19 @@ abstract class ToolRunner
     {
         $mappings = require PROJECT_DIR . "/gdc_mappings/$tool.php";
         return array_map(function ($result) use ($mappings) {
+            $result['file'] = $this->stripProjectDir($result['file']);
             return $result + ['classification' => $mappings[$result['rule']]];
         }, $this->getResults($tool));
+    }
+
+    /**
+     * @param $fileName
+     *
+     * @return mixed
+     */
+    protected function stripProjectDir($fileName)
+    {
+        return str_replace($this->projectDir . DIRECTORY_SEPARATOR, '', $fileName);
     }
 
     // TODO

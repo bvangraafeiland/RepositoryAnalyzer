@@ -14,12 +14,18 @@
     </rule>
     <rule ref="rulesets/naming.xml">
         <exclude name="LongVariable"/>
+        <exclude name="ShortMethodName"/>
     </rule>
     <rule ref="rulesets/design.xml" />
 
     <rule ref="rulesets/naming.xml/LongVariable">
         <properties>
             <property name="maximum" value="30" />
+        </properties>
+    </rule>
+    <rule ref="rulesets/naming.xml/ShortMethodName">
+        <properties>
+            <property name="minimum" value="2" />
         </properties>
     </rule>
 <!--codesize,naming,design-->

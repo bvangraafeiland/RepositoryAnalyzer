@@ -49,8 +49,7 @@ class JavaToolrunner extends ToolRunner
 
         $results = [];
         foreach ($parser->xpath('file') as $fileElement) {
-            $file = str_replace($this->projectDir . DIRECTORY_SEPARATOR, '', $fileElement['name']);
-            $this->{'get' . ucfirst($tool) . 'Results'}($fileElement, $file, $results);
+            $this->{'get' . ucfirst($tool) . 'Results'}($fileElement, $fileElement['name'], $results);
         };
 
         return $results;
@@ -61,9 +60,15 @@ class JavaToolrunner extends ToolRunner
         $warnings = $fileElement->xpath('error');
         foreach ($warnings as $warning) {
             $attributes = current($warning);
-            $results[] = ['file' => $file, 'rule' => $attributes['source']]
+            $rule = $this->shortCheckstyleRule($attributes['source']);
+            $results[] = compact('file', 'rule')
                 + array_only($attributes, ['line', 'column', 'message']);
         }
+    }
+
+    protected function shortCheckstyleRule($fullRule)
+    {
+        return str_replace('Check', '', substr($fullRule, strrpos($fullRule, '.') + 1));
     }
 
     protected function getPmdResults(SimpleXMLElement $fileElement, $file, &$results) {

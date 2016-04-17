@@ -3,7 +3,6 @@ namespace App\Analyzers;
 
 use App\PullRequest;
 use App\Repository;
-use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Created by PhpStorm.
