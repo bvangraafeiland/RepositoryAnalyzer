@@ -11,15 +11,22 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Result extends Model
 {
-    protected $fillable = ['hash'];
+    public $timestamps = false;
+    protected $fillable = ['hash', 'repository_id', 'committed_at'];
+    protected $dates = ['committed_at'];
 
     public function repository()
     {
         return $this->belongsTo(Repository::class);
     }
 
-    public function analysisTool()
+    public function analysisTools()
     {
-        return $this->belongsTo(AnalysisTool::class);
+        return $this->belongsToMany(AnalysisTool::class)->withTimestamps();
+    }
+
+    public function warnings()
+    {
+        return $this->hasMany(Warning::class);
     }
 }

@@ -18,4 +18,9 @@ class Warning extends Model
     {
         return $this->belongsTo(WarningClassification::class);
     }
+
+    public function result()
+    {
+        return $this->belongsTo(Result::class);
+    }
 }

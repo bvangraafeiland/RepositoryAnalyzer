@@ -24,7 +24,6 @@ class CreateWarningsTable extends Migration
             'Metric',
             'Naming Conventions',
             'Object Oriented Design',
-            'Refactorings',
             'Redundancies',
             'Simplifications',
             'Style Conventions',

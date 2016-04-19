@@ -42,8 +42,6 @@ class JavaChecker extends ProjectChecker
         // || $this->{'projectContains'.ucfirst($tool).'File'}();
         // too slow, if configuration is not specified in build then assume it's not used
 
-        //dd($tool, $dependency, $buildTask, $customConfigFile);
-
         return $this->attachASAT($tool, $customConfigFile, $dependency, $buildTask);
     }
 

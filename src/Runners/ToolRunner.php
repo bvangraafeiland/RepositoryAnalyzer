@@ -28,15 +28,12 @@ abstract class ToolRunner
         $this->buildTool = $this->getBuildTool();
         $this->results = [];
         $this->countPerCategory = [];
+
+        $this->checkProjectDir();
     }
 
     public function run($tool)
     {
-        $changedDir = @chdir($this->projectDir);
-        if (!$changedDir) {
-            throw new InvalidArgumentException("Project directory {$this->repository->full_name} does not exist, clone it first!");
-        }
-
         $this->results[$tool] = $this->getGCDAugmentedResults($tool);
         $this->countPerCategory[$tool] = array_count_values(array_pluck($this->results[$tool], 'classification'));
     }
@@ -100,6 +97,14 @@ abstract class ToolRunner
     protected function stripProjectDir($fileName)
     {
         return str_replace($this->projectDir . DIRECTORY_SEPARATOR, '', $fileName);
+    }
+
+    public function checkProjectDir()
+    {
+        $changedDir = @chdir($this->projectDir);
+        if (!$changedDir) {
+            throw new InvalidArgumentException("Project directory {$this->repository->full_name} does not exist, clone it first!");
+        }
     }
 
     // TODO
