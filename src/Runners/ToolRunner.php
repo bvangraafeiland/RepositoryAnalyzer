@@ -26,9 +26,7 @@ abstract class ToolRunner
         $this->repository = $repository;
         $this->projectDir = absoluteRepositoriesDir() . '/' . $repository->full_name;
         $this->buildTool = $this->getBuildTool();
-        $this->results = [];
-        $this->countPerCategory = [];
-
+        $this->resetData();
         $this->checkProjectDir();
     }
 
@@ -36,6 +34,12 @@ abstract class ToolRunner
     {
         $this->results[$tool] = $this->getGCDAugmentedResults($tool);
         $this->countPerCategory[$tool] = array_count_values(array_pluck($this->results[$tool], 'classification'));
+    }
+
+    public function resetData()
+    {
+        $this->results = [];
+        $this->countPerCategory = [];
     }
 
     public function numberOfWarnings($tool)
@@ -55,6 +59,14 @@ abstract class ToolRunner
             return $buildTools->first()->name;
         }
         return null;
+    }
+
+    /**
+     * @return Repository
+     */
+    public function getRepository()
+    {
+        return $this->repository;
     }
 
     /**
@@ -108,6 +120,5 @@ abstract class ToolRunner
     }
 
     // TODO
-    // - Map output to GDC
     // - only run if at least 2 out of 3 asat properties true
 }

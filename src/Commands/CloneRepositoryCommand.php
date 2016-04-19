@@ -26,8 +26,9 @@ class CloneRepositoryCommand extends Command
         $repo = Repository::whereFullName($repoName)->firstOrFail();
         $output->writeln('<comment>Cloning repository...</comment>');
         $result = cloneRepository($repo->full_name);
-        if ($repo->language == 'javascript') {
-            system('npm install');
+        if (strtolower($repo->language) == 'javascript') {
+            $dir = absoluteRepositoriesDir() . "/$repoName";
+            system("cd $dir && npm install");
         }
         $message = ($result === 0) ? '<info>Successfully cloned!</info>' : "<error>Something went wrong. Exit code: $result</error>";
         $output->writeln($message);

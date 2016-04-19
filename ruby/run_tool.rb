@@ -11,7 +11,6 @@ chdir(project_dir);
 
 rake = Rake.application
 rake.init
-rake.load_rakefile
 
 patterns = []
 rakefile = File.open("Rakefile", "rb").read
