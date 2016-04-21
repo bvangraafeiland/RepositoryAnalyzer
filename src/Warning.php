@@ -23,4 +23,9 @@ class Warning extends Model
     {
         return $this->belongsTo(Result::class);
     }
+
+    public function analysisTool()
+    {
+        return $this->belongsTo(AnalysisTool::class);
+    }
 }

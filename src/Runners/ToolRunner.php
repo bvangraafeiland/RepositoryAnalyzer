@@ -33,7 +33,7 @@ abstract class ToolRunner
     public function run($tool)
     {
         $this->results[$tool] = $this->getGCDAugmentedResults($tool);
-        $this->countPerCategory[$tool] = array_count_values(array_pluck($this->results[$tool], 'classification'));
+        $this->countPerCategory[$tool] = array_count_values(array_filter(array_pluck($this->results[$tool], 'classification')));
     }
 
     public function resetData()
@@ -97,7 +97,7 @@ abstract class ToolRunner
         $mappings = require PROJECT_DIR . "/gdc_mappings/$tool.php";
         return array_map(function ($result) use ($mappings) {
             $result['file'] = $this->stripProjectDir($result['file']);
-            return $result + ['classification' => $mappings[$result['rule']]];
+            return $result + ['classification' => array_get($mappings, $result['rule'])];
         }, $this->getResults($tool));
     }
 

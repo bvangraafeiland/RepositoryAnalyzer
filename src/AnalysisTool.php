@@ -13,4 +13,14 @@ class AnalysisTool extends Model
 {
     protected $fillable = ['name'];
     public $timestamps = false;
+
+    public function warnings()
+    {
+        return $this->hasMany(Warning::class);
+    }
+
+    public function results()
+    {
+        return $this->belongsToMany(Result::class)->withTimestamps();
+    }
 }

@@ -19,7 +19,12 @@ if (buildTool == 'grunt') {
     grunt.config.set('jscs.options.reporter', formatters.jscs);
     grunt.config.set('jshint.options.reporter', formatters.jshint);
 
-    grunt.task.run(asatName).start();
+    // Necessary in case of time-grunt
+    grunt.registerTask('exit-when-done', function() {
+        process.exit();
+    });
+
+    grunt.task.run(asatName).run('exit-when-done').start();
 }
 
 else if (buildTool == 'gulp') {

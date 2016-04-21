@@ -100,14 +100,16 @@ class ResultsCollector
     public function runTools($hash = null, $resetHeadAfterward = true)
     {
         $this->hash = $hash ?: $this->getCurrentCommit();
-        system("git checkout $this->hash");
-
         $result = Result::firstOrCreate([
             'repository_id' => $this->repository->id,
             'hash' => $this->hash,
-            'committed_at' => $this->getCurrentCommitDateTime()
+            'committed_at' => $this->getCommitDateTime($this->hash)
         ]);
         $asats = array_diff($this->asats, $result->analysisTools()->pluck('name')->toArray());
+
+        if ($asats) {
+            system("git checkout $this->hash");
+        }
 
         foreach ($asats as $tool) {
             $this->output->writeln("<comment>Running $tool...</comment>");
@@ -139,15 +141,14 @@ class ResultsCollector
         foreach ($this->runner->results as $tool => $violations) {
             $toolId = $this->analysisTools[$tool];
             $result->analysisTools()->attach($toolId);
-
-            $this->saveWarnings($violations, $result);
+            $this->saveWarnings($violations, $result->id, $toolId);
         }
         $this->runner->resetData();
     }
 
-    protected function getCurrentCommitDateTime()
+    protected function getCommitDateTime($hash)
     {
-        exec('git log -1 --pretty=format:%ct', $output, $exitCode);
+        exec("git show -s --format=%ct $hash", $output, $exitCode);
 
         if ($exitCode == 0)
             return Carbon::createFromTimestamp($output[0]);
@@ -155,15 +156,25 @@ class ResultsCollector
         throw new Exception('Could not obtain the current commit timestamp.');
     }
 
-    protected function saveWarnings(array $violations, Result $result)
+    protected function saveWarnings(array $violations, $result_id, $analysis_tool_id)
     {
-        foreach($violations as $violation) {
-            $warning = Warning::firstOrNew(array_except($violation, 'classification') + ['result_id' => $result->id]);
+        $time = microtime(true);
+        $warnings = collect($violations)->map(function ($violation) use ($result_id, $analysis_tool_id) {
+            $classification_id = $this->classifications->get($violation['classification']);
+            return array_except($violation, 'classification')
+                + compact('classification_id', 'result_id', 'analysis_tool_id');
+        });
 
-            if (!$warning->exists) {
-                $warning->classification()->associate($this->classifications[$violation['classification']]);
-                $result->warnings()->save($warning);
-            }
+        if ($this->output->isDebug()) {
+            $this->output->writeln('Warnings array constructed in ' . (microtime(true) - $time) . ' seconds');
+        }
+        $time = microtime(true);
+
+        foreach ($warnings->chunk(5000) as $warningsChunk) {
+            Warning::insert($warningsChunk->toArray());
+        }
+        if ($this->output->isDebug()) {
+            $this->output->writeln('Warnings saved to database in ' . (microtime(true) - $time) . ' seconds');
         }
     }
 }

@@ -54,12 +54,14 @@ class CreateWarningsTable extends Migration
             $table->string('file');
             $table->integer('line');
             $table->integer('column')->nullable();
-            $table->string('message');
+            $table->text('message');
             $table->string('rule');
-            $table->integer('classification_id')->unsigned()->index();
+            $table->integer('classification_id')->unsigned()->index()->nullable();
             $table->foreign('classification_id')->references('id')->on('warning_classifications')->onDelete('cascade');
             $table->integer('result_id')->unsigned()->index();
             $table->foreign('result_id')->references('id')->on('results')->onDelete('cascade');
+            $table->integer('analysis_tool_id')->unsigned()->index();
+            $table->foreign('analysis_tool_id')->references('id')->on('analysis_tools')->onDelete('cascade');
         });
     }
 
