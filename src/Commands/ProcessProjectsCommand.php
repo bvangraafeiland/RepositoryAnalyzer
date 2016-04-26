@@ -27,7 +27,8 @@ class ProcessProjectsCommand extends ApiUsingCommand
         $this->setName('process:projects')->setDescription('Update repositories of the given language with information on ASAT usage')
             ->addArgument('language', InputArgument::REQUIRED, 'Language to filter projects')
             ->addArgument('year', InputArgument::OPTIONAL, 'Only process projects created in this year')
-            ->addOption('repository', null, InputOption::VALUE_REQUIRED, 'If provided, only this repository will be checked for ASAT usage');
+            ->addOption('repository', null, InputOption::VALUE_REQUIRED, 'If provided, only this repository will be checked for ASAT usage')
+            ->addOption('update-existing', null, InputOption::VALUE_NONE, 'If provided, data on existing projects will be updated, otherwise only projects with missing data are processed');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -45,6 +46,10 @@ class ProcessProjectsCommand extends ApiUsingCommand
             $constraints[] = ['created_at', '>=', "$year-01-01"];
             $constraints[] = ['created_at', '<=', "$year-12-31"];
             $message .= " created in $year";
+        }
+
+        if (!$input->getOption('update-existing')) {
+            $constraints[] = ['uses_asats', null];
         }
 
         $output->writeln("<comment>$message</comment>");

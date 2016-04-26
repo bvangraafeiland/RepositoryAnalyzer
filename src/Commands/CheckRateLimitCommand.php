@@ -30,7 +30,7 @@ class CheckRateLimitCommand extends ApiUsingCommand
     protected function displayInfo($response, $category)
     {
         $this->output->writeln('<comment>' . ucfirst($category) . ' API:</comment>');
-        $this->output->write('<info>' . $response[$category]['remaining'] . '/' . $response[$category]['limit'] . '</info> requests, ');
+        $this->output->write('<info>' . $response[$category]['remaining'] . '/' . $response[$category]['limit'] . '</info> requests remaining, ');
         $this->output->writeln('resetting <info>' . Carbon::createFromTimestamp($response[$category]['reset'])->diffForHumans() . '</info>');
     }
 }

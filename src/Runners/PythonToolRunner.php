@@ -15,7 +15,7 @@ class PythonToolRunner extends ToolRunner
     {
         chdir($this->projectDir);
         $dirName = $this->getModuleDirectory();
-        exec("pylint $dirName --output-format=json", $output, $exitCode);
+        exec("\$WORKON_HOME/python2/bin/pylint $dirName --output-format=json", $output, $exitCode);
         $json = implode('', array_map('trim', $output));
         $results = json_decode($json, true);
 

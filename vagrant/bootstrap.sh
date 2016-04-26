@@ -26,4 +26,14 @@ apt-get install default-jdk
 apt-get install -y maven gradle
 
 # Python
-pip install tox pylint virtualenv
+apt-get install python3
+pip install tox virtualenv virtualenvwrapper
+echo 'export WORKON_HOME=$HOME/.virtualenvs' >> ~/.bashrc
+echo 'source /usr/local/bin/virtualenvwrapper.sh' >> ~/.bashrc
+exec $SHELL
+for PYVERSION in python2 python3
+do
+    mkvirtualenv ${PYVERSION} -p /usr/bin/${PYVERSION}
+    pip install pylint
+done
+deactivate

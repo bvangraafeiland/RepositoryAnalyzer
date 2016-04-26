@@ -24,8 +24,8 @@ $db->addConnection([
     'database'  => 'github_repos',
     'username'  => 'root',
     'password'  => 'secret',
-    'charset'   => 'utf8',
-    'collation' => 'utf8_unicode_ci',
+    'charset'   => 'utf8mb4',
+    'collation' => 'utf8mb4_unicode_ci',
     'prefix'    => '',
 ]);
 $db->setAsGlobal();
