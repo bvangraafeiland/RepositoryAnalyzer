@@ -19,7 +19,7 @@ exec $SHELL
 rbenv install 2.3.0 --verbose
 rbenv global 2.3.0
 rbenv rehash
-gem install rubocop rake
+gem install rubocop:0.30.0 rake
 
 # Java
 apt-get install default-jdk
@@ -34,6 +34,6 @@ exec $SHELL
 for PYVERSION in python2 python3
 do
     mkvirtualenv ${PYVERSION} -p /usr/bin/${PYVERSION}
-    pip install pylint
+    pip install pylint==1.4.5
 done
 deactivate
