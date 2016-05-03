@@ -71,9 +71,10 @@ class ResultsCollector
      * Run ASATs for a range of commits.
      *
      * @param $depth
+     * @param int $skip
      * @param string $skipUntil Skip commits up to and including this one.
      */
-    public function runMany($depth, $skipUntil = null)
+    public function runMany($depth, $skip = 0, $skipUntil = null)
     {
         exec("git log -$depth --first-parent --pretty=format:%H", $commitHashes);
 
@@ -81,8 +82,8 @@ class ResultsCollector
             $commitHashes = array_slice($commitHashes, array_search($skipUntil, $commitHashes) + 1);
         }
 
-        foreach ($commitHashes as $commitHash) {
-            $this->runTools($commitHash, false);
+        for ($i = 0; $i < count($commitHashes); $i += 1 + $skip) {
+            $this->runTools($commitHashes[$i], false);
         }
 
         $this->resetHead();
