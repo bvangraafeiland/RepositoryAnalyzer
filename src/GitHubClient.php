@@ -199,6 +199,14 @@ class GitHubClient
         return $this->asArray("/repos/$repo/pulls", ['query' => compact('state')]);
     }
 
+    public function countPullRequests($repo, $state = 'closed')
+    {
+        $per_page = 1;
+        $result = $this->asArray("/repos/$repo/pulls", ['query' => compact('per_page', 'state')]);
+
+        return $result ? $this->totalPageCount() : 0;
+    }
+
     /**
      * @return static
      */

@@ -24,25 +24,39 @@ class AnalyzePullRequestsCommand extends ApiUsingCommand
             ->addArgument('language', InputArgument::OPTIONAL)
             ->addOption('repo', null, InputOption::VALUE_REQUIRED, 'Repository to check pull requests for')
             ->addOption('state', null, InputOption::VALUE_REQUIRED, 'PR state (open, closed, all)')
+            ->addOption('count', null, InputOption::VALUE_NONE, 'Count total number of pull requests instead of fetching their data')
             ->setDescription('Fetches the last 100 closed pull requests for the given repositories and stores them in the database');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $output->writeln('Fetching pull request data...');
-        $constraints = [];
+        $count = $input->getOption('count');
 
-        if ($language = $input->getArgument('language'))
-            $constraints['language'] = $language;
+        $query = Repository::query();
 
-        if ($repoName = $input->getOption('repo'))
-            $constraints['full_name'] = $repoName;
+        if ($count) {
+            $query->whereNull('pull_request_count');
+        }
 
-        $repos = Repository::where($constraints)->get();
+        if ($language = $input->getArgument('language')) {
+            $query->where(compact('language'));
+        }
+
+        if ($repoName = $input->getOption('repo')) {
+            $query->where('full_name', $repoName);
+        }
+
+        $repos = $query->get();
 
         foreach ($repos as $repo) {
             $output->writeln("Getting data for <comment>$repo->full_name</comment>...");
-            $this->fetchPullRequests($repo);
+            if ($count) {
+                $this->countPullRequests($repo);
+            }
+            else {
+                $this->fetchPullRequests($repo);
+            }
         }
 
         $output->writeln('<info>Done!</info>');
@@ -65,5 +79,11 @@ class AnalyzePullRequestsCommand extends ApiUsingCommand
 
             PullRequest::insert($attributes);
         }
+    }
+
+    protected function countPullRequests(Repository $repository)
+    {
+        $repository->pull_request_count = GitHubClient::getInstance()->countPullRequests($repository->full_name);
+        $repository->save();
     }
 }

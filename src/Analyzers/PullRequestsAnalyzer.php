@@ -1,8 +1,9 @@
 <?php
 namespace App\Analyzers;
 
-use App\PullRequest;
 use App\Repository;
+use Carbon\Carbon;
+use stdClass;
 
 /**
  * Created by PhpStorm.
@@ -12,44 +13,47 @@ use App\Repository;
  */
 class PullRequestsAnalyzer
 {
-    /**
-     * @var Repository
-     */
     protected $repository;
+    protected $pullRequests;
 
     public function __construct(Repository $repository)
     {
         $this->repository = $repository;
+        $this->pullRequests = $repository->pullRequests;
     }
 
     public function timeToClose()
     {
-        return $this->repository->pullRequests->map(function (PullRequest $pr) {
-            return $pr->created_at->diffInSeconds($pr->closed_at);
+        return $this->pullRequests->map(function (stdClass $pullRequest) {
+            return Carbon::parse($pullRequest->created_at)->diffInSeconds(Carbon::parse($pullRequest->closed_at));
         });
+    }
+
+    public function uniqueUserCount()
+    {
+        return $this->pullRequests->map(function (stdClass $pullRequest) {
+            return $pullRequest->user_id;
+        })->unique()->count();
     }
 
     public function timeToReject()
     {
-        return $this->repository->rejectedPullRequests->map(function (PullRequest $pr) {
-            return $pr->created_at->diffInSeconds($pr->closed_at);
-        });
+        //return $this->rejectedPullRequests->map(function ($pr) {
+        //    return $pr->created_at->diffInSeconds($pr->closed_at);
+        //});
     }
 
     public function timeToMerge()
     {
-        return $this->repository->mergedPullRequests->map(function (PullRequest $pr) {
-            return $pr->created_at->diffInSeconds($pr->merged_at);
-        });
+        //return $this->mergedPullRequests->map(function ($pr) {
+        //    return $pr->created_at->diffInSeconds($pr->merged_at);
+        //});
     }
 
     public function mergedCount()
     {
-        return $this->repository->mergedPullRequests()->count();
-    }
-
-    public function totalCount()
-    {
-        return $this->repository->pullRequests()->count();
+        return $this->pullRequests->filter(function (stdClass $pullRequest) {
+            return $pullRequest->merged_at;
+        })->count();
     }
 }

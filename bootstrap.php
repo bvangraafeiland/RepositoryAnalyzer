@@ -4,6 +4,7 @@ use App\Commands\AnalyzePullRequestsCommand;
 use App\Commands\BatchExecuteCommand;
 use App\Commands\CheckRateLimitCommand;
 use App\Commands\CloneRepositoryCommand;
+use App\Commands\ExportDataCommand;
 use App\Commands\ProcessProjectsCommand;
 use App\Commands\RunAsatCommand;
 use App\Commands\SearchRepositoriesCommand;
@@ -43,5 +44,6 @@ $application->addCommands([
     new CloneRepositoryCommand,
     new RunAsatCommand,
     new AnalyzePullRequestsCommand,
+    new ExportDataCommand,
     new TinkerCommand
 ]);

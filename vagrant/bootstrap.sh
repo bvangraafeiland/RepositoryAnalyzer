@@ -37,3 +37,6 @@ do
     pip install pylint==1.4.5
 done
 deactivate
+
+echo 'export PATH="vendor/bin:$PATH"' >> ~/.bashrc
+exec $SHELL
