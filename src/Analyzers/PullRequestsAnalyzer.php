@@ -3,6 +3,7 @@ namespace App\Analyzers;
 
 use App\Repository;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use stdClass;
 
 /**
@@ -14,6 +15,10 @@ use stdClass;
 class PullRequestsAnalyzer
 {
     protected $repository;
+
+    /**
+     * @var Collection
+     */
     protected $pullRequests;
 
     public function __construct(Repository $repository)
@@ -26,7 +31,20 @@ class PullRequestsAnalyzer
     {
         return $this->pullRequests->map(function (stdClass $pullRequest) {
             return Carbon::parse($pullRequest->created_at)->diffInSeconds(Carbon::parse($pullRequest->closed_at));
-        });
+        })->average();
+    }
+
+    public function recentDensity()
+    {
+        $min = Carbon::parse($this->pullRequests->min('created_at'));
+        $max = Carbon::parse($this->pullRequests->max('created_at'));
+
+        return $this->pullRequests->count() / $min->diffInHours($max);
+    }
+
+    public function lifetimeDensity()
+    {
+        return $this->repository->pull_request_count / $this->repository->created_at->diffInHours($this->repository->pushed_at);
     }
 
     public function uniqueUserCount()
@@ -55,5 +73,13 @@ class PullRequestsAnalyzer
         return $this->pullRequests->filter(function (stdClass $pullRequest) {
             return $pullRequest->merged_at;
         })->count();
+    }
+
+    public function getData($fields)
+    {
+        return array_map(function ($field) {
+            $attribute = $this->repository->{$field};
+            return is_null($attribute) ? call_user_func([$this, camel_case($field)]) : $attribute;
+        }, $fields);
     }
 }

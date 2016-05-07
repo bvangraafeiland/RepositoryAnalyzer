@@ -9,6 +9,15 @@ namespace App\Export;
  */
 abstract class DataExporter
 {
+    protected abstract function getFileHeaders();
+    protected abstract function getItems();
+    protected abstract function getFileName();
+
+    public function export()
+    {
+        $this->writeToCSV($this->getFileName(), $this->getItems(), $this->getFileHeaders());
+    }
+    
     protected function writeToCSV($fileName, $data, array $headers = [])
     {
         $file = fopen(PROJECT_DIR . "/results/$fileName.csv", 'w');

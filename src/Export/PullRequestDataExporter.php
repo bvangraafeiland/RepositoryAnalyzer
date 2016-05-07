@@ -14,18 +14,19 @@ use Illuminate\Support\Collection;
  */
 class PullRequestDataExporter extends DataExporter
 {
-    public function pullRequestCounts()
+    protected function getFileHeaders()
     {
-        $counts = Repository::all('pull_request_count', 'uses_asats')->toArray();
-        $this->writeToCSV('pull_request_counts', $counts, ['count', 'uses_asats']);
+        return ['full_name', 'uses_asats', 'pull_request_count', 'merged_count', 'time_to_close', 'recent_density', 'lifetime_density', 'unique_user_count'];
     }
 
-    public function pullRequestsData()
+    protected function getFileName()
     {
-        $start = microtime(true);
+        return 'pull_request_stats';
+    }
+
+    protected function getItems()
+    {
         $repositories = Repository::has('pullRequests', '>=', 100)->get();
-        $fetched = microtime(true);
-        var_dump('fetching: ' . ($fetched - $start));
 
         $pulls = DB::select('select * from pull_requests WHERE pull_requests.repository_id IN (' . implode(',', $repositories->modelKeys()) . ')');
         $pullRequests = [];
@@ -33,36 +34,11 @@ class PullRequestDataExporter extends DataExporter
             $pullRequests[$pr->repository_id][] = $pr;
         }
 
-        $repositories = $repositories->map(function (Repository $repository) use ($pullRequests) {
+        return $repositories->map(function (Repository $repository) use ($pullRequests) {
             $repository->pullRequests = new Collection($pullRequests[$repository->id]);
-            return $repository;
-        });
-
-        $loaded = microtime(true);
-        var_dump('loading: ' . ($loaded - $fetched));
-
-        $repoData = $this->gatherPullRequestStatistics($repositories);
-
-        $processed = microtime(true);
-        var_dump('processing: ' . ($processed - $loaded));
-
-        var_dump('total: ' . (microtime(true) - $start));
-
-        $this->writeToCSV("pull_request_stats", $repoData, ['name', 'uses_asats', 'total_count', 'merged_count', 'time_to_close', 'user_count']);
-    }
-
-    protected function gatherPullRequestStatistics(Collection $repositories)
-    {
-        return $repositories->map(function (Repository $repository) {
             $analyzer = new PullRequestsAnalyzer($repository);
-            return [
-                $repository->full_name,
-                $repository->uses_asats,
-                $repository->pull_request_count,
-                $analyzer->mergedCount(),
-                $analyzer->timeToClose()->average(),
-                $analyzer->uniqueUserCount()
-            ];
-        })->toArray();
+
+            return $analyzer->getData($this->getFileHeaders());
+        });
     }
 }
