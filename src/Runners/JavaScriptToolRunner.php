@@ -19,6 +19,8 @@ class JavaScriptToolRunner extends ToolRunner
 
         exec('node ' . PROJECT_DIR . "/javascript/run_tool.js $this->buildTool $asatName $this->projectDir", $output, $exitCode);
 
+        dd($output);
+
         if ($exitCode !== 0) {
             var_dump($output);
             throw new Exception("$this->buildTool analyzer exited with code $exitCode");
@@ -35,13 +37,13 @@ class JavaScriptToolRunner extends ToolRunner
 
         $readmeContents = @file_get_contents($this->projectDir . '/readme.md');
 
-        if (str_contains($readmeContents, 'grunt')) {
-            return 'grunt';
-        }
+        //if (str_contains($readmeContents, 'grunt')) {
+        //    return 'grunt';
+        //}
 
-        if (str_contains($readmeContents, 'gulp')) {
+        //if (str_contains($readmeContents, 'gulp')) {
             return 'gulp';
-        }
+        //}
 
         return $this->repository->buildTools->first()->name;
     }

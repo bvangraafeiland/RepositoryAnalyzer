@@ -16,7 +16,7 @@ class PullRequestDataExporter extends DataExporter
 {
     protected function getFileHeaders()
     {
-        return ['full_name', 'uses_asats', 'pull_request_count', 'merged_count', 'time_to_close', 'recent_density', 'lifetime_density', 'unique_user_count'];
+        return ['full_name', 'uses_asats', 'pull_request_count', 'merged_count', 'time_to_close', 'recent_density', 'unique_user_count'];
     }
 
     protected function getFileName()

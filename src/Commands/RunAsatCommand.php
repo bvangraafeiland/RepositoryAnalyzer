@@ -29,7 +29,7 @@ class RunAsatCommand extends Command
 
         $this->addArgument('repository', InputArgument::REQUIRED, 'The repository to analyze')
             ->addArgument('tools', InputArgument::IS_ARRAY|InputArgument::OPTIONAL, 'Run only these ASATs')
-            ->addOption('skip', null, InputOption::VALUE_REQUIRED, 'Skip this many commits in history after running the ASAT on the previous commit', 0)
+            //->addOption('skip', null, InputOption::VALUE_REQUIRED, 'Skip this many commits in history after running the ASAT on the previous commit', 0)
             ->addOption('depth', null, InputOption::VALUE_REQUIRED, 'Number of commits to run the tools on', 1);
             //->addOption('commit', null, InputOption::VALUE_REQUIRED, 'The hash of the commit to run the ASATs on');
     }
@@ -37,13 +37,23 @@ class RunAsatCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $repo = Repository::whereFullName($input->getArgument('repository'))->firstOrFail();
+
+        if (!file_exists(absoluteRepositoriesDir() . "/$repo->full_name")) {
+            $output->writeln('<comment>Cloning repository...</comment>');
+            cloneRepository($repo);
+        }
+
         $runner = $this->getRunnerFor($repo);
         $asats = $input->getArgument('tools') ?: $repo->asats->pluck('name')->toArray();
         //$hash = $input->getOption('commit');
 
         $collector = new ResultsCollector($runner, $output, $asats);
-        $collector->runMany($input->getOption('depth'), $input->getOption('skip'));
-        $output->writeln('<info>Results saved to database!</info>');
+        if ($collector->runMany($input->getOption('depth'))) {
+            $output->writeln('<info>Results saved to database!</info>');
+        }
+        else {
+            $output->writeln('<error>Something went wrong</error>');
+        }
     }
 
     /**

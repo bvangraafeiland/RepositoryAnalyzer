@@ -13,7 +13,7 @@ class RepositoryDataExporter extends DataExporter
 {
     protected function getFileHeaders()
     {
-        return ['full_name', 'stargazers_count', 'language', 'uses_asats', 'uses_travis', 'pull_request_count'];
+        return ['full_name', 'stargazers_count', 'language', 'uses_asats', 'uses_travis', 'pull_request_count', 'age', 'lifetime_density'];
     }
 
     protected function getFileName()
@@ -23,7 +23,7 @@ class RepositoryDataExporter extends DataExporter
 
     protected function getItems()
     {
-        return Repository::all($this->getFileHeaders())->map(function (Repository $repository) {
+        return Repository::all()->map(function (Repository $repository) {
             return array_map(function ($field) use ($repository) {
                 return $repository->getAttribute($field);
             }, $this->getFileHeaders());

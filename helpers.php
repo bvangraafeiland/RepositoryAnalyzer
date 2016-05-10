@@ -28,13 +28,19 @@ function codeContains($code, $string, $regex = false, $comment = "//") {
     return str_contains($codeWithoutComments, $string);
 }
 
-function cloneRepository($name) {
+function cloneRepository(Repository $repository) {
     $directory = absoluteRepositoriesDir();
+    $name = $repository->full_name;
 
     if (!file_exists($directory)) {
         mkdir($directory);
     }
     exec("cd $directory && git clone git://github.com/$name.git $name", $output, $returnCode);
+
+    if (strtolower($repository->language) == 'javascript') {
+        system("cd $directory/$name && npm install");
+    }
+
     return $returnCode;
 }
 

@@ -42,11 +42,6 @@ class PullRequestsAnalyzer
         return $this->pullRequests->count() / $min->diffInHours($max);
     }
 
-    public function lifetimeDensity()
-    {
-        return $this->repository->pull_request_count / $this->repository->created_at->diffInHours($this->repository->pushed_at);
-    }
-
     public function uniqueUserCount()
     {
         return $this->pullRequests->map(function (stdClass $pullRequest) {
@@ -78,7 +73,7 @@ class PullRequestsAnalyzer
     public function getData($fields)
     {
         return array_map(function ($field) {
-            $attribute = $this->repository->{$field};
+            $attribute = $this->repository[$field];
             return is_null($attribute) ? call_user_func([$this, camel_case($field)]) : $attribute;
         }, $fields);
     }

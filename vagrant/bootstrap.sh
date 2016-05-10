@@ -38,5 +38,8 @@ do
 done
 deactivate
 
+# JavaScript
+npm install -g eslint jshint jscs
+
 echo 'export PATH="vendor/bin:$PATH"' >> ~/.bashrc
 exec $SHELL

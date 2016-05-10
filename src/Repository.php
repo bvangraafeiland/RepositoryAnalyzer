@@ -121,4 +121,17 @@ class Repository extends Model
         $parts = explode('/', $this->full_name);
         return $parts[1];
     }
+
+    public function getAgeAttribute()
+    {
+        return $this->created_at->diffInHours($this->pushed_at);
+    }
+
+    public function getLifetimeDensityAttribute()
+    {
+        if ($this->age === 0)
+            return 0;
+
+        return $this->pull_request_count / $this->age;
+    }
 }

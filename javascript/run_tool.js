@@ -10,6 +10,9 @@ var formatters = {
 
 process.chdir(projectDir);
 
+process.env.NODE_PATH = projectDir + '/node_modules';
+require('module').Module._initPaths();
+
 if (buildTool == 'grunt') {
     var grunt = require(projectDir + '/node_modules/grunt');
     var gruntFile = require(projectDir + '/Gruntfile.js');
@@ -29,18 +32,35 @@ if (buildTool == 'grunt') {
 
 else if (buildTool == 'gulp') {
     var gulp = require(projectDir + '/node_modules/gulp');
-    var gulpFile = projectDir + '/gulpfile.js';
-    var asat = require(projectDir + '/node_modules/gulp-' + asatName);
+    require(projectDir + '/gulpfile.js');
 
-    require(gulpFile);
+    try {
+        var asat = require(projectDir + '/node_modules/gulp-' + asatName);
 
-    var tasks = Object.keys(gulp.tasks)
-        .map(taskName => gulp.tasks[taskName])
-        .filter(task => task.fn.toString().includes(asatName + '('));
-    var targets = tasks.map(task => task.fn.toString().match(/src\(['"]([^\)]+)["']\)/i)[1]);
+        var tasks = Object.keys(gulp.tasks)
+            .map(taskName => gulp.tasks[taskName])
+            .filter(task => task.fn.toString().includes(asatName + '('));
+        var targets = tasks.map(task => task.fn.toString().match(/src\(([^\)]+)\)/i)[1]);
 
-    targets.forEach(target => {
-        var reporter =  (asatName == 'eslint') ? asat.format(formatters[asatName]) : asat.reporter(formatters[asatName]);
-        gulp.src(target).pipe(asat()).pipe(reporter);
-    });
+        targets.forEach(target => {
+            var src = eval(target);//.map(tar => projectDir + '/' + tar);
+            // src = typeof src == 'string' ? [src] : src;
+            // src = src.map(str => '"' + str + '"');
+
+            var reporter = (asatName == 'eslint') ? asat.format(formatters[asatName]) : asat.reporter(formatters[asatName]);
+            result = gulp.src(src).pipe(asat()).pipe(reporter);
+            console.log(result._flush());
+        });
+
+    } catch (e) {
+        // Gulp task not defined
+        // console.log(e);
+        var exec = require('child_process').exec;
+        var formatFlag = (asatName == 'eslint') ? ' --format=' : ' --reporter=';
+        var ignorePattern = (asatName == 'eslint') ? '--ignore-pattern node_modules' : '--exclude=node_modules';
+        var cmd = asatName + formatFlag + formatters[asatName] + '.js . ' + ignorePattern;
+        exec(cmd, function(error, stdout, stderr) {
+            console.log(stdout);
+        });
+    }
 }

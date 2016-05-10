@@ -1,6 +1,8 @@
 <?php
 namespace App\Export;
 
+use Exception;
+
 /**
  * Created by PhpStorm.
  * User: Bastiaan
@@ -21,6 +23,9 @@ abstract class DataExporter
     protected function writeToCSV($fileName, $data, array $headers = [])
     {
         $file = fopen(PROJECT_DIR . "/results/$fileName.csv", 'w');
+        if (!$file) {
+            throw new Exception('File could not be opened for writing');
+        }
         if ($headers) {
             fputcsv($file, $headers);
         }
