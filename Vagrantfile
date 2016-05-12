@@ -52,6 +52,7 @@ Vagrant.configure(2) do |config|
   # end
   config.vm.provider "virtualbox" do |v|
       v.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/vagrant", "1"]
+      v.cpus = 4
   end
   # View the documentation for the provider you are using for more
   # information on available options.

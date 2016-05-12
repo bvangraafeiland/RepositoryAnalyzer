@@ -30,12 +30,14 @@ apt-get install python3
 pip install tox virtualenv virtualenvwrapper
 echo 'export WORKON_HOME=$HOME/.virtualenvs' >> ~/.bashrc
 echo 'source /usr/local/bin/virtualenvwrapper.sh' >> ~/.bashrc
+
+echo 'export PYTHONPATH="."' >> ~/.bashrc
 exec $SHELL
-for PYVERSION in python2 python3
-do
-    mkvirtualenv ${PYVERSION} -p /usr/bin/${PYVERSION}
-    pip install pylint==1.4.5
-done
+#for PYVERSION in python2 python3
+#do
+#    mkvirtualenv ${PYVERSION} -p /usr/bin/${PYVERSION}
+#    pip install pylint==1.4.5
+#done
 deactivate
 
 # JavaScript

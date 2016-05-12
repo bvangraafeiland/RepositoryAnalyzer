@@ -53,7 +53,7 @@ class JavaChecker extends ProjectChecker
     protected function anyCustomConfigSpecifiedFor($tool)
     {
         return $this->anyBuildConfig(function ($key, JavaBuildInfo $config) use ($tool) {
-            $config->{'hasCustom'.ucfirst($tool).'Config'}();
+            return $config->{'hasCustom'.ucfirst($tool).'Config'}();
         });
     }
 

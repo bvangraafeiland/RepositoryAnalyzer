@@ -48,6 +48,7 @@ abstract class ProjectChecker
     abstract protected function getBuildTools();
 
     protected function checkForBuildTools() {
+        $this->project->buildTools()->sync([]);
         foreach ($this->getBuildTools() as $toolName => $fileName) {
             if (in_array($fileName, $this->projectRootFiles))
                 $this->attachBuildTool($toolName);

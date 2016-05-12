@@ -8,6 +8,7 @@ use App\Checkers\RubyChecker;
 use App\Repository;
 use Carbon\Carbon;
 use GuzzleHttp\Exception\ClientException;
+use Illuminate\Database\Query\Builder;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -62,6 +63,10 @@ class ProcessProjectsCommand extends ApiUsingCommand
         /*
         ->whereHas('asats', function($query) {
             $query->where('in_dev_dependencies', false);
+        })
+
+         ->whereExists(function (Builder $query) {
+            $query->select(['*'])->from('analysis_tool_repository')->whereRaw('analysis_tool_repository.repository_id = repositories.id AND config_file_present = 0');
         })
          */
         $projects = Repository::where($constraints)->get();

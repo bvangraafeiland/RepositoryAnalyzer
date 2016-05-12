@@ -78,6 +78,7 @@ class ResultsCollector
      */
     public function runMany($depth, $skipUntil = null, $skip = 0)
     {
+        system('git checkout ' . $this->repository->default_branch);
         exec("git log -$depth --first-parent --pretty=format:%H", $commitHashes);
 
         if ($skipUntil) {
@@ -87,6 +88,7 @@ class ResultsCollector
         try {
             for ($i = 0; $i < count($commitHashes); $i += 1 + $skip) {
                 $this->runTools($commitHashes[$i], false);
+                $this->output->writeln('<comment>Completed ' . ($i + 1) . ' out of ' . count($commitHashes) . '</comment>');
             }
             $saved = true;
         } catch (Exception $e) {

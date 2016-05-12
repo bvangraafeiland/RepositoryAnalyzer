@@ -64,6 +64,14 @@ class Repository extends Model
     }
 
     /**
+     * @return HasMany
+     */
+    public function results()
+    {
+        return $this->hasMany(Result::class);
+    }
+
+    /**
      * Get the contents of the given file in the repository
      *
      * @param $path

@@ -29,7 +29,7 @@ class RunAsatCommand extends Command
 
         $this->addArgument('repository', InputArgument::REQUIRED, 'The repository to analyze')
             ->addArgument('tools', InputArgument::IS_ARRAY, 'Run only these ASATs')
-            //->addOption('skip', null, InputOption::VALUE_REQUIRED, 'Skip this many commits in history after running the ASAT on the previous commit', 0)
+            ->addOption('skip-until', null, InputOption::VALUE_REQUIRED, 'Skip until this commit in history', 0)
             ->addOption('depth', null, InputOption::VALUE_REQUIRED, 'Number of commits to run the tools on', 1);
             //->addOption('commit', null, InputOption::VALUE_REQUIRED, 'The hash of the commit to run the ASATs on');
     }
@@ -47,7 +47,7 @@ class RunAsatCommand extends Command
         $asats = $input->getArgument('tools');
 
         $collector = new ResultsCollector($runner, $output, $asats);
-        if ($collector->runMany($input->getOption('depth'))) {
+        if ($collector->runMany($input->getOption('depth'), $input->getOption('skip-until'))) {
             $output->writeln('<info>Results saved to database!</info>');
         }
         else {
