@@ -28,7 +28,7 @@ class RunAsatCommand extends Command
         $this->setName('analyze:repo')->setDescription('Runs ASATs over the given repository');
 
         $this->addArgument('repository', InputArgument::REQUIRED, 'The repository to analyze')
-            ->addArgument('tools', InputArgument::IS_ARRAY|InputArgument::OPTIONAL, 'Run only these ASATs')
+            ->addArgument('tools', InputArgument::IS_ARRAY, 'Run only these ASATs')
             //->addOption('skip', null, InputOption::VALUE_REQUIRED, 'Skip this many commits in history after running the ASAT on the previous commit', 0)
             ->addOption('depth', null, InputOption::VALUE_REQUIRED, 'Number of commits to run the tools on', 1);
             //->addOption('commit', null, InputOption::VALUE_REQUIRED, 'The hash of the commit to run the ASATs on');
@@ -44,8 +44,7 @@ class RunAsatCommand extends Command
         }
 
         $runner = $this->getRunnerFor($repo);
-        $asats = $input->getArgument('tools') ?: $repo->asats->pluck('name')->toArray();
-        //$hash = $input->getOption('commit');
+        $asats = $input->getArgument('tools');
 
         $collector = new ResultsCollector($runner, $output, $asats);
         if ($collector->runMany($input->getOption('depth'))) {
