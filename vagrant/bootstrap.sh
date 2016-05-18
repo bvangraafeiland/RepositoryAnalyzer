@@ -24,6 +24,11 @@ gem install rubocop:0.30.0 rake
 # Java
 apt-get install default-jdk
 apt-get install -y maven gradle
+wget http://dl.google.com/android/android-sdk_r24.4.1-linux.tgz
+tar -xvzf android-sdk_r24.4.1-linux.tgz -C $HOME
+echo 'export ANDROID_HOME="$HOME/android-sdk-linux"' >> ~/.bashrc
+echo 'export PATH="$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools"' >> ~/.bashrc
+exec $SHELL
 
 # Python
 apt-get install python3

@@ -75,6 +75,7 @@ class ResultsCollector
      * @param int $skip
      *
      * @return bool
+     * @throws Exception
      */
     public function runMany($depth, $skipUntil = null, $skip = 0)
     {
@@ -82,7 +83,11 @@ class ResultsCollector
         exec("git log -$depth --first-parent --pretty=format:%H", $commitHashes);
 
         if ($skipUntil) {
-            $commitHashes = array_slice($commitHashes, array_search($skipUntil, $commitHashes) + 1);
+            $skipToPosition = array_search($skipUntil, $commitHashes);
+            if ($skipToPosition === false) {
+                throw new Exception('Provided depth does not contain the commit hash to skip');
+            }
+            $commitHashes = array_slice($commitHashes, $skipToPosition + 1);
         }
 
         try {

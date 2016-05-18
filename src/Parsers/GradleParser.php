@@ -30,7 +30,7 @@ class GradleParser implements JavaBuildInfo
     public function hasCustomCheckstyleConfig()
     {
         // Mandatory with Gradle
-        return true;
+        return $this->containsPlugin('checkstyle');
     }
 
     public function hasCustomPmdConfig()

@@ -97,6 +97,7 @@ abstract class ToolRunner
         $mappings = require PROJECT_DIR . "/gdc_mappings/$tool.php";
         return array_map(function ($result) use ($mappings) {
             $result['file'] = $this->stripProjectDir($result['file']);
+            $result['column'] = array_get($result, 'column', null);
             return $result + ['classification' => array_get($mappings, $result['rule'])];
         }, $this->getResults($tool));
     }
@@ -118,7 +119,4 @@ abstract class ToolRunner
             throw new InvalidArgumentException("Project directory {$this->repository->full_name} does not exist, clone it first!");
         }
     }
-
-    // TODO
-    // - only run if at least 2 out of 3 asat properties true
 }

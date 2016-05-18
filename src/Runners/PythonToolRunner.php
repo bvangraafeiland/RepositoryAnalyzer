@@ -25,8 +25,12 @@ class PythonToolRunner extends ToolRunner
             throw new Exception('No Python source directories could be determined');
         }
 
+        $this->fixConfigErrors();
+
         $rcFileOption = file_exists('.pylintrc') ? '--rcfile .pylintrc' : '';
         exec("pylint -j 3 $dirNames --output-format=json $rcFileOption", $output, $exitCode);
+        $this->revertConfigChanges();
+        
         $json = implode('', array_map('trim', $output));
         $results = json_decode($json, true);
 
@@ -41,6 +45,18 @@ class PythonToolRunner extends ToolRunner
                 'message' => trim($violation['message'])
             ] + array_only($violation, ['line', 'column']);
         }, $results);
+    }
+
+    protected function fixConfigErrors()
+    {
+        $configFile = $this->getConfigFile();
+        $config = file_get_contents($configFile);
+        file_put_contents($configFile, preg_replace('/(\n\s*)-/', '$1', $config));
+    }
+
+    protected function revertConfigChanges()
+    {
+        exec('git checkout ' . $this->getConfigFile());
     }
 
     /**
@@ -73,5 +89,15 @@ class PythonToolRunner extends ToolRunner
             throw new Exception('Source directory could not be found');
         }
         return $result;
+    }
+
+    /**
+     * @return string
+     */
+    protected function getConfigFile()
+    {
+        $configFile = file_exists('pylintrc') ? 'pylintrc' : '.pylintrc';
+
+        return $configFile;
     }
 }

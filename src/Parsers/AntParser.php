@@ -35,6 +35,6 @@ class AntParser extends XmlParser implements JavaBuildInfo
     public function hasCustomPmdConfig()
     {
         // PMD config always required, so config will always be at least semi-custom (by combining presets)
-        return true;
+        return $this->hasPluginInBuild('pmd');
     }
 }

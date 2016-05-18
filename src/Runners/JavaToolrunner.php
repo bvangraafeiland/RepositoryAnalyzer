@@ -13,28 +13,111 @@ use SimpleXMLElement;
  */
 class JavaToolrunner extends ToolRunner
 {
+    protected $outputLocation = 'asat-result.xml';
+
+    protected $projectConfigs = [
+        'square/retrofit' => [
+            'src' => 'retrofit',
+            'asat-version' => '6.1.1'
+        ],
+        'bumptech/glide' => [
+            'src' => 'library',
+            'asat-version' => '6.1.1',
+            'properties' => [
+                'checkStyleConfigDir' => '.'
+            ]
+        ],
+        'netflix/servo' => [
+            'src' => 'servo-core/src/main/java',
+            'asat-version' => '5.2.3',
+            'config-location' => 'codequality/pmd.xml'
+        ],
+        'opengrok/opengrok' => [
+            'config-location' => 'tools/pmd_ruleset.xml',
+            'src' => 'src/org/opensolaris/opengrok'
+        ],
+        'sleekbyte/tailor' => [
+            'config-location' => 'config/pmd/tailorRuleSet.xml',
+            'src' => 'src/main/java'
+        ],
+        'facebook/buck' => [
+            'config-location' => 'pmd/rules.xml',
+            'src' => 'src/com/facebook'
+        ]
+    ];
+
     protected function getResults($tool)
     {
         chdir($this->projectDir);
-        $buildTools = $this->repository->buildTools;
-        if ($buildTools->contains('name', 'maven')) {
-            $location = $tool == 'checkstyle' ? 'target/checkstyle-result.xml' : 'target/pmd.xml';
-            $buildToolCommand = "mvn $tool:check";
-        }
-        elseif ($buildTools->contains('name', 'gradle')) {
-            $location = "build/reports/$tool/main.xml";
-            $gradleCmd = file_exists('./gradlew') ? 'chmod 755 gradlew && ./gradlew' : 'gradle';
-            $buildToolCommand = "$gradleCmd {$tool}Main";
-        }
+        $buildToolCommand = $this->{'get' . ucfirst($tool) . 'Command'}();
 
-        if (!isset($location, $buildToolCommand)) {
-            throw new Exception('Only projects that can be built using maven or gradle are supported.');
-        }
-
-        system("rm -f $location");
+        system("rm -f $this->outputLocation");
+        $this->fixConfigErrors($tool);
         exec($buildToolCommand);
+        $this->revertGitChanges($tool);
 
-        return $this->getWarnings($tool, $location);
+        return $this->getWarnings($tool, $this->outputLocation);
+    }
+
+    protected function getCheckstyleCommand()
+    {
+        $projectConfig = $this->getProjectConfig();
+        $version = array_get($projectConfig, 'asat-version', '6.15');
+        $properties = array_get($projectConfig, 'properties', []);
+        $commandProperties = '';
+        foreach ($properties as $property => $value) {
+            $commandProperties .= "-D$property=$value ";
+        }
+
+        $src = implode(' ', array_map(function ($dir) use ($version) {
+            $prefix = $version == '6.1.1' ? '-r ' : '';
+            return "$prefix$dir/src/main/java";
+        }, (array) $projectConfig['src']));
+        $configLocation = array_get($projectConfig, 'config-location', 'checkstyle.xml');
+        return "java -Dcheckstyle.cache.file=checkstyle-cache $commandProperties -jar ~/checkstyle-$version-all.jar -c $configLocation $src -o $this->outputLocation -f xml";
+    }
+
+    protected function getPmdCommand()
+    {
+        $projectConfig = $this->getProjectConfig();
+        $version = array_get($projectConfig, 'asat-version', '5.4.1');
+        $src = implode(' ', (array) $projectConfig['src']);
+        $configLocation = array_get($projectConfig, 'config-location', 'pmd.xml');
+
+        return "~/pmd-bin-$version/bin/run.sh pmd -d $src -R $configLocation -f xml -r $this->outputLocation";
+    }
+
+    protected function fixConfigErrors($tool)
+    {
+        if ($tool == 'pmd') {
+            $pmdConfig = $this->getConfigLocation('pmd');
+            $config = file_get_contents($pmdConfig);
+            file_put_contents($pmdConfig, str_replace('<exclude name="ShortMethod"/>', '', $config));
+        }
+    }
+
+    protected function revertGitChanges($tool)
+    {
+        exec('git checkout ' . $this->getConfigLocation($tool));
+    }
+
+    /**
+     * @throws Exception
+     */
+    protected function getProjectConfig()
+    {
+        $projectConfig = array_get($this->projectConfigs, strtolower($this->repository->full_name));
+
+        if (is_null($projectConfig)) {
+            throw new Exception('Could not retrieve project configuration for running Java tool');
+        }
+
+        return $projectConfig;
+    }
+
+    protected function getConfigLocation($tool)
+    {
+        return array_get($this->getProjectConfig(), 'config-location', "$tool.xml");
     }
 
     protected function getWarnings($tool, $resultsFileLocation)
