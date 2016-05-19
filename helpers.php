@@ -40,9 +40,9 @@ function cloneRepository(Repository $repository) {
     if (strtolower($repository->language) == 'javascript') {
         system("cd $directory/$name && npm install");
     }
-    elseif (strtolower($repository->language) == 'ruby') {
-        system("cd $directory/$name && bundler install");
-    }
+    //elseif (strtolower($repository->language) == 'ruby') {
+    //    system("cd $directory/$name && bundler install");
+    //}
     //elseif (strtolower($repository->language) == 'python') {
     //    system("cd $directory/$name && \$WORKON_HOME/python2/bin/python setup.py install");
     //}

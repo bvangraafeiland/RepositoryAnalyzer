@@ -2,6 +2,7 @@
 namespace App\Runners;
 
 use App\Repository;
+use Exception;
 use InvalidArgumentException;
 
 /**
@@ -19,6 +20,7 @@ abstract class ToolRunner
     protected $projectDir;
     protected $buildTool;
     protected $countPerCategory;
+    protected $projectConfigs;
     public $results;
 
     public function __construct(Repository $repository)
@@ -118,5 +120,19 @@ abstract class ToolRunner
         if (!$changedDir) {
             throw new InvalidArgumentException("Project directory {$this->repository->full_name} does not exist, clone it first!");
         }
+    }
+
+    /**
+     * @throws Exception
+     */
+    protected function getProjectConfig()
+    {
+        $projectConfig = array_get($this->projectConfigs, strtolower($this->repository->full_name));
+
+        if (is_null($projectConfig)) {
+            throw new Exception('Could not retrieve project configuration for running tool');
+        }
+
+        return $projectConfig;
     }
 }

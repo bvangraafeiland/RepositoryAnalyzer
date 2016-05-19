@@ -101,20 +101,6 @@ class JavaToolrunner extends ToolRunner
         exec('git checkout ' . $this->getConfigLocation($tool));
     }
 
-    /**
-     * @throws Exception
-     */
-    protected function getProjectConfig()
-    {
-        $projectConfig = array_get($this->projectConfigs, strtolower($this->repository->full_name));
-
-        if (is_null($projectConfig)) {
-            throw new Exception('Could not retrieve project configuration for running Java tool');
-        }
-
-        return $projectConfig;
-    }
-
     protected function getConfigLocation($tool)
     {
         return array_get($this->getProjectConfig(), 'config-location', "$tool.xml");

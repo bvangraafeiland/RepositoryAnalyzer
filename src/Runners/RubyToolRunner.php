@@ -11,17 +11,39 @@ use Exception;
  */
 class RubyToolRunner extends ToolRunner
 {
+    protected $projectConfigs = [
+        'sass/sass' => [],
+        'thoughtbot/paperclip' => [
+            'rubocop-version' => '0.29.1'
+        ],
+        'cocoapods/cocoapods' => [
+            'rubocop-version' => '0.37.2'
+        ],
+        'spree/spree' => [
+            'rubocop-version' => '0.36.0',
+            'src' => ['api', 'backend', 'cmd', 'core', 'frontend', 'guides', 'sample']
+        ],
+        'ruby-grape/grape' => [
+            'rubocop-version' => '0.39.0',
+        ]
+    ];
+
     protected function getResults($tool)
     {
-        if (! $this->buildTool == 'rake') {
-            throw new Exception('Only projects using rake are supported');
+        chdir($this->projectDir);
+        
+        $version = array_get($this->getProjectConfig(), 'rubocop-version', '0.35.0');
+        $src = (array) array_get($this->getProjectConfig(), 'src', 'lib');
+        $src = implode(' ', $src);
+
+        if (!isset($version, $src)) {
+            throw new Exception('Version and/or source directory not set');
         }
 
-        exec('ruby ' . PROJECT_DIR . "/ruby/run_tool.rb $this->projectDir", $output, $exitCode);
+        exec("rbenv exec rubocop _{$version}_ $src -f json", $output, $exitCode);
 
-        if ($exitCode !== 0) {
-            var_dump($output);
-            throw new Exception("$this->buildTool analyzer exited with code $exitCode");
+        if ($exitCode == 2) {
+            throw new Exception("Rubocop exited with code $exitCode");
         }
 
         $results = [];
