@@ -13,7 +13,7 @@ use Illuminate\Support\Collection;
 class PythonToolRunner extends ToolRunner
 {
     protected $additionalSources = [
-        'SirVer/ultisnips' => ['plugin/*.py']
+        'SirVer/ultisnips' => ['plugin/*.py', 'pythonx/UltiSnips', 'plugin/UltiSnips', 'plugin/PySnipEmu']
     ];
 
     protected function getResults($tool)
@@ -25,11 +25,15 @@ class PythonToolRunner extends ToolRunner
             throw new Exception('No Python source directories could be determined');
         }
 
+        // TODO modules -> PYTHONPATH
+
         $this->fixConfigErrors();
 
         $rcFileOption = file_exists('.pylintrc') ? '--rcfile .pylintrc' : '';
         exec("pylint -j 3 $dirNames --output-format=json $rcFileOption", $output, $exitCode);
         $this->revertConfigChanges();
+
+        dd($output);
         
         $json = implode('', array_map('trim', $output));
         $results = json_decode($json, true);
@@ -69,19 +73,15 @@ class PythonToolRunner extends ToolRunner
         return $this->getModuleDirectories()->merge($additional);
     }
 
-    protected function customLocations()
-    {
-        $shortProjectName = strtolower(basename($this->repository->full_name));
-        return ["src/$shortProjectName", 'pythonx/UltiSnips', 'plugin/UltiSnips', 'plugin/PySnipEmu'];
-    }
-
     /**
      * @return Collection
      * @throws Exception
      */
     protected function getModuleDirectories()
     {
-        $result = collect(scandir('.'))->merge($this->customLocations())->filter(function ($filename) {
+        $shortProjectName = strtolower(basename($this->repository->full_name));
+
+        $result = collect(scandir('.'))->merge("src/$shortProjectName")->filter(function ($filename) {
             return !str_contains($filename, ['.', 'test']) && is_dir($filename) && file_exists("$filename/__init__.py");
         });
 
