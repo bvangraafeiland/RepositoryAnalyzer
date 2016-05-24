@@ -12,28 +12,19 @@ use Illuminate\Support\Collection;
  */
 class PythonToolRunner extends ToolRunner
 {
-    protected $additionalSources = [
-        'SirVer/ultisnips' => ['plugin/*.py', 'pythonx/UltiSnips', 'plugin/UltiSnips', 'plugin/PySnipEmu']
-    ];
-
     protected function getResults($tool)
     {
-        chdir($this->projectDir);
         $dirNames = $this->getSources()->implode(' ');
 
         if (empty($dirNames)) {
             throw new Exception('No Python source directories could be determined');
         }
 
-        // TODO modules -> PYTHONPATH
-
         $this->fixConfigErrors();
 
         $rcFileOption = file_exists('.pylintrc') ? '--rcfile .pylintrc' : '';
         exec("pylint -j 3 $dirNames --output-format=json $rcFileOption", $output, $exitCode);
         $this->revertConfigChanges();
-
-        dd($output);
         
         $json = implode('', array_map('trim', $output));
         $results = json_decode($json, true);
@@ -69,7 +60,7 @@ class PythonToolRunner extends ToolRunner
      */
     protected function getSources()
     {
-        $additional = array_get($this->additionalSources, $this->repository->full_name, []);
+        $additional = array_get($this->getProjectConfig('pylint'), 'src', []);
         return $this->getModuleDirectories()->merge($additional);
     }
 
@@ -93,11 +84,20 @@ class PythonToolRunner extends ToolRunner
 
     /**
      * @return string
+     * @throws Exception
      */
     protected function getConfigFile()
     {
-        $configFile = file_exists('pylintrc') ? 'pylintrc' : '.pylintrc';
+        $configFile = file_exists('pylintrc') ? 'pylintrc' : ( file_exists('.pylintrc') ? '.pylintrc' : null);
+
+        if (!$configFile)
+            throw new Exception('Pylint config file not found');
 
         return $configFile;
+    }
+
+    protected function hasConfigFile($tool)
+    {
+        return (bool) $this->getConfigFile();
     }
 }

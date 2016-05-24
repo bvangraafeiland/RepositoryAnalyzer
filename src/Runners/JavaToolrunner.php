@@ -15,45 +15,13 @@ class JavaToolrunner extends ToolRunner
 {
     protected $outputLocation = 'asat-result.xml';
 
-    protected $projectConfigs = [
-        'square/retrofit' => [
-            'src' => 'retrofit',
-            'asat-version' => '6.1.1'
-        ],
-        'bumptech/glide' => [
-            'src' => 'library',
-            'asat-version' => '6.1.1',
-            'properties' => [
-                'checkStyleConfigDir' => '.'
-            ]
-        ],
-        'netflix/servo' => [
-            'src' => 'servo-core/src/main/java',
-            'asat-version' => '5.2.3',
-            'config-location' => 'codequality/pmd.xml'
-        ],
-        'opengrok/opengrok' => [
-            'config-location' => 'tools/pmd_ruleset.xml',
-            'src' => 'src/org/opensolaris/opengrok'
-        ],
-        'sleekbyte/tailor' => [
-            'config-location' => 'config/pmd/tailorRuleSet.xml',
-            'src' => 'src/main/java'
-        ],
-        'facebook/buck' => [
-            'config-location' => 'pmd/rules.xml',
-            'src' => 'src/com/facebook'
-        ]
-    ];
-
     protected function getResults($tool)
     {
-        chdir($this->projectDir);
         $buildToolCommand = $this->{'get' . ucfirst($tool) . 'Command'}();
 
         system("rm -f $this->outputLocation");
         $this->fixConfigErrors($tool);
-        exec($buildToolCommand);
+        exec($buildToolCommand, $output);
         $this->revertGitChanges($tool);
 
         return $this->getWarnings($tool, $this->outputLocation);
@@ -61,7 +29,7 @@ class JavaToolrunner extends ToolRunner
 
     protected function getCheckstyleCommand()
     {
-        $projectConfig = $this->getProjectConfig();
+        $projectConfig = $this->getProjectConfig('checkstyle');
         $version = array_get($projectConfig, 'asat-version', '6.15');
         $properties = array_get($projectConfig, 'properties', []);
         $commandProperties = '';
@@ -69,19 +37,23 @@ class JavaToolrunner extends ToolRunner
             $commandProperties .= "-D$property=$value ";
         }
 
+        $existingSrcDirs = array_filter((array)$projectConfig['src'], function ($dir) {
+            return file_exists($dir);
+        });
         $src = implode(' ', array_map(function ($dir) use ($version) {
-            $prefix = $version == '6.1.1' ? '-r ' : '';
+            $prefix = $version <= '6.1.1' ? '-r ' : '';
             return "$prefix$dir/src/main/java";
-        }, (array) $projectConfig['src']));
-        $configLocation = array_get($projectConfig, 'config-location', 'checkstyle.xml');
-        return "java -Dcheckstyle.cache.file=checkstyle-cache $commandProperties -jar ~/checkstyle-$version-all.jar -c $configLocation $src -o $this->outputLocation -f xml";
+        }, $existingSrcDirs));
+        $configLocation = $this->getConfigLocation('checkstyle');
+        return "java -Dcheckstyle.cache.file=checkstyle-cache $commandProperties -jar ~/checkstyle-$version-all.jar -c $configLocation $src -f xml -o $this->outputLocation";
     }
 
     protected function getPmdCommand()
     {
-        $projectConfig = $this->getProjectConfig();
+        $projectConfig = $this->getProjectConfig('pmd');
         $version = array_get($projectConfig, 'asat-version', '5.4.1');
-        $src = implode(' ', (array) $projectConfig['src']);
+        $src = implode(',', (array) $projectConfig['src']);
+
         $configLocation = array_get($projectConfig, 'config-location', 'pmd.xml');
 
         return "~/pmd-bin-$version/bin/run.sh pmd -d $src -R $configLocation -f xml -r $this->outputLocation";
@@ -103,7 +75,7 @@ class JavaToolrunner extends ToolRunner
 
     protected function getConfigLocation($tool)
     {
-        return array_get($this->getProjectConfig(), 'config-location', "$tool.xml");
+        return array_get($this->getProjectConfig($tool), 'config-location', "$tool.xml");
     }
 
     protected function getWarnings($tool, $resultsFileLocation)
@@ -150,5 +122,10 @@ class JavaToolrunner extends ToolRunner
             $column = $attributes['begincolumn'];
             $results[] = compact('file', 'message', 'rule', 'line', 'column');
         }
+    }
+
+    protected function hasConfigFile($tool)
+    {
+        return file_exists($this->getConfigLocation($tool));
     }
 }

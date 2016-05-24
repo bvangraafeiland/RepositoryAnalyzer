@@ -2,6 +2,7 @@
 namespace App\Runners;
 
 use App\AnalysisTool;
+use App\Exceptions\RepositoryStateException;
 use App\Repository;
 use App\Result;
 use App\Warning;
@@ -33,10 +34,7 @@ class ResultsCollector
      */
     protected $output;
 
-    /**
-     * @var array
-     */
-    protected $asats;
+    protected $asat;
 
     /**
      * @var Repository
@@ -46,12 +44,12 @@ class ResultsCollector
     protected $classifications;
     protected $analysisTools;
 
-    public function __construct(ToolRunner $runner, OutputInterface $output, array $asats)
+    public function __construct(ToolRunner $runner, OutputInterface $output, $asat)
     {
         $this->runner = $runner;
         $this->repository = $runner->getRepository();
         $this->output = $output;
-        $this->asats = $asats;
+        $this->asat = $asat;
 
         $this->classifications = WarningClassification::pluck('id', 'name');
         $this->analysisTools = AnalysisTool::pluck('id', 'name');
@@ -123,21 +121,23 @@ class ResultsCollector
             'hash' => $this->hash,
             'committed_at' => $this->getCommitDateTime($this->hash)
         ]);
-        $asats = array_diff($this->asats, $result->analysisTools()->pluck('name')->toArray());
 
-        if ($asats) {
+        if (! $result->analysisTools()->pluck('name')->contains($this->asat)) {
+
             system("git checkout $this->hash");
-        }
-
-        foreach ($asats as $tool) {
-            $this->output->writeln("<comment>Running $tool...</comment>");
-            $this->runner->run($tool);
-            $this->output->writeln('<info>Analysis complete, ' . $this->runner->numberOfWarnings($tool) . ' violations detected:</info>');
-            foreach ($this->runner->numWarningsPerCategory($tool) as $category => $count) {
-                $this->output->writeln("<comment>$category: $count error(s)</comment>");
+            try {
+                $this->output->writeln("<comment>Running $this->asat...</comment>");
+                $this->runner->run($this->asat);
+                $this->output->writeln('<info>Analysis complete, ' . $this->runner->numberOfWarnings($this->asat) . ' violations detected</info>');
+                //foreach ($this->runner->numWarningsPerCategory($this->asat) as $category => $count) {
+                //    $this->output->writeln("<comment>$category: $count error(s)</comment>");
+                //}
+            } catch (RepositoryStateException $e) {
+                $result->delete();
+                throw $e;
             }
+            $this->collectResults($result);
         }
-        $this->collectResults($result);
 
         if ($resetHeadAfterward) {
             $this->resetHead();

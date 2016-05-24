@@ -13,6 +13,12 @@ class JavaScriptChecker extends ProjectChecker
     protected $packageArray;
     protected $dependenciesJSON;
 
+    public static $configFileNames = [
+        'eslint' => ['.eslintrc', '.eslintrc.js', '.eslintrc.json', '.eslintrc.yml', '.eslintrc.yaml'],
+        'jshint' => ['.jshintrc'],
+        'jscs' => ['.jscsrc']
+    ];
+
     public function doLanguageSpecificProcessing()
     {
         $packageContent = $this->project->getFile('package.json');
@@ -40,7 +46,7 @@ class JavaScriptChecker extends ProjectChecker
 
     protected function checkJSHint()
     {
-        $jshintConfigFile = in_array('.jshintrc', $this->projectRootFiles) || array_has($this->packageArray, 'jshintConfig');
+        $jshintConfigFile = array_intersect(static::$configFileNames['jshint'], $this->projectRootFiles) || array_has($this->packageArray, 'jshintConfig');
         $jshintDependency = str_contains($this->dependenciesJSON, 'jshint');
         $jshintBuildTask = $this->buildFilesContain('jshint');
 
@@ -49,7 +55,7 @@ class JavaScriptChecker extends ProjectChecker
 
     protected function checkJSCS()
     {
-        $jscsConfigFile = in_array('.jscsrc', $this->projectRootFiles) || array_has($this->packageArray, 'jscsConfig');
+        $jscsConfigFile = array_intersect(static::$configFileNames['jscs'], $this->projectRootFiles) || array_has($this->packageArray, 'jscsConfig');
         $jscsDependency = str_contains($this->dependenciesJSON, 'jscs');
         $jscsBuildTask = $this->buildFilesContain('jscs');
 
@@ -58,7 +64,7 @@ class JavaScriptChecker extends ProjectChecker
 
     protected function checkESLint()
     {
-        $eslintConfigFile = (bool) array_intersect(['.eslintrc', '.eslintrc.js', '.eslintrc.json', '.eslintrc.yml', '.eslintrc.yaml'], $this->projectRootFiles) || array_has($this->packageArray, 'eslintConfig');
+        $eslintConfigFile = (bool) array_intersect(static::$configFileNames['eslint'], $this->projectRootFiles) || array_has($this->packageArray, 'eslintConfig');
         $eslintDependency = str_contains($this->dependenciesJSON, 'eslint');
         $eslintBuildTask = $this->buildFilesContain('eslint');
 

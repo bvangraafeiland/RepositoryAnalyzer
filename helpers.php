@@ -37,9 +37,9 @@ function cloneRepository(Repository $repository) {
     }
     exec("cd $directory && git clone git://github.com/$name.git $name", $output, $returnCode);
 
-    if (strtolower($repository->language) == 'javascript') {
-        system("cd $directory/$name && npm install");
-    }
+    //if (strtolower($repository->language) == 'javascript') {
+    //    system("cd $directory/$name && npm install");
+    //}
     //elseif (strtolower($repository->language) == 'ruby') {
     //    system("cd $directory/$name && bundler install");
     //}

@@ -1,6 +1,7 @@
 <?php
 namespace App\Runners;
 
+use App\Exceptions\RepositoryStateException;
 use App\Repository;
 use Exception;
 use InvalidArgumentException;
@@ -18,7 +19,6 @@ abstract class ToolRunner
      */
     protected $repository;
     protected $projectDir;
-    protected $buildTool;
     protected $countPerCategory;
     protected $projectConfigs;
     public $results;
@@ -27,16 +27,24 @@ abstract class ToolRunner
     {
         $this->repository = $repository;
         $this->projectDir = absoluteRepositoriesDir() . '/' . $repository->full_name;
-        $this->buildTool = $this->getBuildTool();
         $this->resetData();
         $this->checkProjectDir();
+
+        $this->projectConfigs = require PROJECT_DIR . "/config/projects.php";
     }
 
     public function run($tool)
     {
+        chdir($this->projectDir);
+        if (! $this->hasConfigFile($tool)) {
+            throw new RepositoryStateException('No config file found');
+        }
+
         $this->results[$tool] = $this->getGCDAugmentedResults($tool);
         $this->countPerCategory[$tool] = array_count_values(array_filter(array_pluck($this->results[$tool], 'classification')));
     }
+
+    protected abstract function hasConfigFile($tool);
 
     public function resetData()
     {
@@ -75,15 +83,25 @@ abstract class ToolRunner
      * @param array $output
      *
      * @return array
+     * @throws Exception
      */
     protected function jsonOutputToArray(array $output)
     {
         $results = [];
+        $foundResults = false;
         foreach ($output as $lineNumber => $line) {
             $decodedLine = json_decode($line, true);
             if (is_array($decodedLine)) {
                 $results = array_merge($results, $decodedLine);
+                $foundResults = true;
             }
+            else {
+                echo $line . PHP_EOL;
+            }
+        }
+
+        if (!$foundResults) {
+            throw new Exception('No results found in output');
         }
 
         return $results;
@@ -123,16 +141,19 @@ abstract class ToolRunner
     }
 
     /**
+     * @param $asatName
+     *
+     * @return mixed
      * @throws Exception
      */
-    protected function getProjectConfig()
+    protected function getProjectConfig($asatName)
     {
-        $projectConfig = array_get($this->projectConfigs, strtolower($this->repository->full_name));
+        $asatConfigs = array_get($this->projectConfigs, $asatName);
 
-        if (is_null($projectConfig)) {
+        if (!isset($asatConfigs[strtolower($this->repository->full_name)])) {
             throw new Exception('Could not retrieve project configuration for running tool');
         }
 
-        return $projectConfig;
+        return $asatConfigs[strtolower($this->repository->full_name)];
     }
 }

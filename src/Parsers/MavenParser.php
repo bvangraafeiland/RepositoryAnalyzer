@@ -24,7 +24,7 @@ class MavenParser extends XmlParser implements JavaBuildInfo
     public function hasCustomPmdConfig()
     {
         // Having the rulesets element means deviating from the default 3 rulesets used
-        return (bool) $this->pluginRootXpath("//configuration/rulesets");
+        return (bool) $this->pluginRootXpath('pmd', "//configuration/rulesets");
     }
 
     public function checkstyleConfigFile()
