@@ -17,11 +17,12 @@ abstract class DataExporter
 
     public function export()
     {
-        $this->writeToCSV($this->getFileName(), $this->getItems(), $this->getFileHeaders());
+        $this->writeToCSV();
     }
     
-    protected function writeToCSV($fileName, $data, array $headers = [])
+    protected function writeToCSV()
     {
+        list($fileName, $data, $headers) = [$this->getFileName(), $this->getItems(), $this->getFileHeaders()];
         $file = fopen(PROJECT_DIR . "/results/$fileName.csv", 'w');
         if (!$file) {
             throw new Exception('File could not be opened for writing');

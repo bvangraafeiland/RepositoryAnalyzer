@@ -1,6 +1,7 @@
 <?php
 namespace App\Commands;
 
+use App\Export\BasicDataExporter;
 use App\Export\PullRequestDataExporter;
 use App\Export\RepositoryDataExporter;
 use Symfony\Component\Console\Command\Command;
@@ -28,6 +29,8 @@ class ExportDataCommand extends Command
                 (new PullRequestDataExporter)->export();
             if ($category == 'repositories')
                 (new RepositoryDataExporter())->export();
+            if ($category == 'basic')
+                (new BasicDataExporter())->export();
         }
     }
 }
