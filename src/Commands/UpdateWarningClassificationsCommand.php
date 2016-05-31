@@ -33,10 +33,11 @@ class UpdateWarningClassificationsCommand extends Command
         $output->writeln(count($rules) . ' warnings found...');
 
         foreach ($rules as $rule)  {
-            $output->writeln("Updating rule $rule->name");
+            $output->writeln("Updating rule $rule->name...");
             $gdcName = $mappings[$rule->asat_name][$rule->name];
             $classification_id = $classifications[$gdcName];
-            DB::table('warnings')->whereRule($rule->name)->update(compact('classification_id'));
+            $updatedCount = DB::table('warnings')->whereNull('classification_id')->where('Rule', $rule->name)->update(compact('classification_id'));
+            $output->writeln("<comment>$updatedCount rows updated.</comment>");
         };
 
         $output->writeln('<info>Done!</info>');
