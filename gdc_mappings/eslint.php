@@ -157,4 +157,9 @@ return [
     'wrap-iife' => 'Resource',
     'wrap-regex' => 'Best Practices',
     'yoda' => 'Best Practices',
+
+    'no-useless-call' => 'Simplifications',
+    'callback-return' => 'Logic',
+    'no-duplicate-imports' => 'Best Practices',
+    'no-useless-escape' => 'Redundancies',
 ];

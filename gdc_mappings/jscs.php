@@ -116,4 +116,7 @@ return [
     'validateLineBreaks' => 'Style Conventions',
     'validateParameterSeparator' => 'Style Conventions',
     'validateQuoteMarks' => 'Style Conventions',
+
+    'requirePaddingNewLinesAfterBlocks' => 'Style Conventions',
+    'validateNewlineAfterArrayElements' => 'Style Conventions',
 ];

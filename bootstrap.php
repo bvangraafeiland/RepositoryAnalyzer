@@ -9,10 +9,12 @@ use App\Commands\ProcessProjectsCommand;
 use App\Commands\RunAsatCommand;
 use App\Commands\SearchRepositoriesCommand;
 use App\Commands\TinkerCommand;
+use App\Commands\UpdateWarningClassificationsCommand;
 use App\GitHubClient;
 use Symfony\Component\Console\Application;
 
 define('PROJECT_DIR', __DIR__);
+define('ASATS', ['checkstyle', 'pmd', 'rubocop', 'pylint', 'eslint', 'jshint', 'jscs']);
 
 $dotenv = new Dotenv\Dotenv(__DIR__);
 $dotenv->load();
@@ -45,5 +47,6 @@ $application->addCommands([
     new RunAsatCommand,
     new AnalyzePullRequestsCommand,
     new ExportDataCommand,
+    new UpdateWarningClassificationsCommand,
     new TinkerCommand
 ]);

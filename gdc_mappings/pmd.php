@@ -308,4 +308,8 @@ return [
     'UnusedModifier' => 'Redundancies',
     'UnusedPrivateField' => 'Redundancies',
     'UnusedPrivateMethod' => 'Redundancies',
+
+    'SingleMethodSingleton' => 'Resource',
+    'SimplifiedTernary' => 'Simplifications',
+    'CommentDefaultAccessModifier' => 'Documentation Conventions',
 ];
