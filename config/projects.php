@@ -81,6 +81,15 @@ return [
         'cython/cython' => [
             'src' => ['Tools/*.py', 'Demos/*.py']
         ],
+        'rembo10/headphones' => [
+            'src' => ['contrib/*.py', 'headphones', 'Headphones.py']
+        ],
+        'numenta/nupic' => [
+            'src' => ['scripts/*.py', 'scripts/profiling/*.py', 'src/nupic']
+        ],
+        'pyinstaller/pyinstaller' => [
+            'src' => ['PyInstaller', 'scripts/*.py']
+        ]
     ],
     'eslint' => [
         'jashkenas/backbone' => [

@@ -23,7 +23,14 @@ abstract class DataExporter
     protected function writeToCSV()
     {
         list($fileName, $data, $headers) = [$this->getFileName(), $this->getItems(), $this->getFileHeaders()];
-        $file = fopen(PROJECT_DIR . "/results/$fileName.csv", 'w');
+        $location = PROJECT_DIR .  "/results/$fileName.csv";
+
+        $dirname = dirname($location);
+        if (!is_dir($dirname)) {
+            mkdir($dirname, 0777, true);
+        }
+
+        $file = fopen($location, 'w');
         if (!$file) {
             throw new Exception('File could not be opened for writing');
         }

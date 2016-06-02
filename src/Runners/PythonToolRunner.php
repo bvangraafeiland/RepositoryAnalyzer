@@ -14,7 +14,7 @@ class PythonToolRunner extends ToolRunner
 {
     protected function getResults($tool)
     {
-        $dirNames = $this->getSources()->implode(' ');
+        $dirNames = implode(' ', array_get($this->getProjectConfig('pylint'), 'src', []));
 
         if (empty($dirNames)) {
             throw new Exception('No Python source directories could be determined');
@@ -52,34 +52,6 @@ class PythonToolRunner extends ToolRunner
     protected function revertConfigChanges()
     {
         exec('git checkout ' . $this->getConfigFile());
-    }
-
-    /**
-     * @return Collection
-     * @throws Exception
-     */
-    protected function getSources()
-    {
-        $additional = array_get($this->getProjectConfig('pylint'), 'src', []);
-        return $this->getModuleDirectories()->merge($additional);
-    }
-
-    /**
-     * @return Collection
-     * @throws Exception
-     */
-    protected function getModuleDirectories()
-    {
-        $shortProjectName = strtolower(basename($this->repository->full_name));
-
-        $result = collect(scandir('.'))->merge("src/$shortProjectName")->filter(function ($filename) {
-            return !str_contains($filename, ['.', 'test']) && is_dir($filename) && file_exists("$filename/__init__.py");
-        });
-
-        if (empty($result)) {
-            throw new Exception('Source directory could not be found');
-        }
-        return $result;
     }
 
     /**

@@ -71,6 +71,11 @@ class Repository extends Model
         return $this->hasMany(Result::class);
     }
 
+    public function warnings()
+    {
+        return $this->hasManyThrough(Warning::class, Result::class);
+    }
+
     /**
      * Get the contents of the given file in the repository
      *
