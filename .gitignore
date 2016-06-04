@@ -5,3 +5,6 @@
 /.vagrant
 /repositories
 /node_modules
+.Rproj.user
+.RData
+.Rhistory

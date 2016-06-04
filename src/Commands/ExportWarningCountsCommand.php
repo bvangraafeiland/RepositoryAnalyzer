@@ -2,6 +2,7 @@
 namespace App\Commands;
 
 use App\Export\WarningCountsExporter;
+use App\Repository;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -36,3 +37,22 @@ class ExportWarningCountsCommand extends Command
         }
     }
 }
+
+/*
+  $repositories = Repository::whereIn('full_name', $repoNames)->get();
+        foreach ($repositories as $repository) {
+            $base = basename($repository->full_name);
+            $start = $repository->results()->orderBy('committed_at')->first()->committed_at->toFormattedDateString();
+            $end = $repository->results()->orderBy('committed_at', 'desc')->first()->committed_at->toFormattedDateString();
+            $numResults = $repository->results()->count();
+            echo <<<FIG
+\\begin{figure}[H]
+\\includegraphics[width=0.5\\textwidth]{img/results-warning_counts/$base.eps}
+\\caption{Warning counts of $numResults commits to $repository->full_name ranging from $start to $end}
+\\label{fig:warning-counts-$base}
+\\end{figure}
+Some extra info here.
+
+FIG;
+        }
+ */

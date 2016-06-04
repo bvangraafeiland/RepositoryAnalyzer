@@ -60,15 +60,12 @@ return [
     ],
     'rubocop' => [
         'sass/sass' => [],
+        'capistrano/capistrano' => [],
         'thoughtbot/paperclip' => [
             'rubocop-version' => '0.29.1'
         ],
         'cocoapods/cocoapods' => [
             'rubocop-version' => '0.37.2'
-        ],
-        'spree/spree' => [
-            'rubocop-version' => '0.36.0',
-            'src' => ['api', 'backend', 'cmd', 'core', 'frontend', 'guides', 'sample']
         ],
         'ruby-grape/grape' => [
             'rubocop-version' => '0.39.0',

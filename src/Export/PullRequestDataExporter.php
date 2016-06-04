@@ -19,11 +19,6 @@ class PullRequestDataExporter extends DataExporter
         return ['full_name', 'uses_asats', 'pull_request_count', 'merged_count', 'time_to_close', 'recent_density', 'unique_user_count'];
     }
 
-    protected function getFileName()
-    {
-        return 'pull_request_stats';
-    }
-
     protected function getItems()
     {
         $repositories = Repository::has('pullRequests', '>=', 100)->get();

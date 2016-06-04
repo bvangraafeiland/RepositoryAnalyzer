@@ -13,13 +13,11 @@ abstract class DataExporter
 {
     protected abstract function getFileHeaders();
     protected abstract function getItems();
-    protected abstract function getFileName();
-
     public function export()
     {
         $this->writeToCSV();
     }
-    
+
     protected function writeToCSV()
     {
         list($fileName, $data, $headers) = [$this->getFileName(), $this->getItems(), $this->getFileHeaders()];
@@ -41,5 +39,10 @@ abstract class DataExporter
             fputcsv($file, (array) $item);
         }
         fclose($file);
+    }
+
+    protected function getFileName()
+    {
+        return snake_case(str_replace('Exporter', '', get_class()));
     }
 }

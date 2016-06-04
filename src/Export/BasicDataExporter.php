@@ -49,9 +49,4 @@ class BasicDataExporter extends DataExporter
     {
         return $count . ' (' . round($count / $total, 2) * 100 . '%)';
     }
-
-    protected function getFileName()
-    {
-        return 'basic_data';
-    }
 }
