@@ -30,7 +30,7 @@ class WarningCountsExporter extends DataExporter
 
     protected function getItems()
     {
-        return (array) DB::table('results')->select(['results.id', 'results.hash', 'results.committed_at', DB::raw('count(warnings.id)')])->leftJoin('warnings', 'results.id', '=', 'warnings.result_id')->where('repository_id', $this->repository->id)->groupBy('results.id')->orderBy('committed_at')->get();
+        return (array) DB::table('results')->select(['results.id', 'results.hash', 'results.committed_at', DB::raw('count(warnings.id)')])->leftJoin('warnings', 'results.id', '=', 'warnings.result_id')->where('repository_id', $this->repository->id)->groupBy('results.id')->orderBy('results.id', 'desc')->get();
     }
 
     protected function getFileName()

@@ -4,6 +4,9 @@ namespace App\Commands;
 use App\Export\BasicDataExporter;
 use App\Export\PullRequestDataExporter;
 use App\Export\RepositoryDataExporter;
+use App\Export\SolveTimeCombiner;
+use App\Export\SolveTimeExporter;
+use App\Repository;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -19,18 +22,20 @@ class ExportDataCommand extends Command
 {
     protected function configure()
     {
-        $this->setName('export:data')->setDescription('Export all data used for statistics')->addArgument('categories', InputArgument::IS_ARRAY, 'Data categories to limit exporting to (pulls, repositories, warnings)', ['pulls', 'repositories', 'warnings']);
+        $this->setName('export:data')->setDescription('Export all data used for statistics')->addArgument('category', InputArgument::REQUIRED, 'Data category to export(pulls, repositories, basic, solve_times)');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        foreach ($input->getArgument('categories') as $category) {
-            if ($category == 'pulls')
-                (new PullRequestDataExporter)->export();
-            if ($category == 'repositories')
-                (new RepositoryDataExporter())->export();
-            if ($category == 'basic')
-                (new BasicDataExporter())->export();
-        }
+        $category = $input->getArgument('category');
+
+        if ($category == 'pulls')
+            (new PullRequestDataExporter)->export();
+        if ($category == 'repositories')
+            (new RepositoryDataExporter)->export();
+        if ($category == 'basic')
+            (new BasicDataExporter)->export();
+        if ($category == 'solve_times')
+            (new SolveTimeCombiner)->export();
     }
 }

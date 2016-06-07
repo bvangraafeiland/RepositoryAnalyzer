@@ -6,6 +6,9 @@ repository_data <- read.csv("results/repository_data.csv", row.names=1)
 pull_request_stats <- read.csv("results/pull_request_data.csv", row.names=1)
 asat_prevalence <- read.csv("results/asat_prevalence.csv", header = FALSE)
 warning_counts <- retrieveWarningCounts()
+classification_counts <- read.csv("results/warning_classification_counts.csv", header = FALSE)
+solve_times <- retrieveSolveTimes()
+solve_time_means <- unlist(lapply(solve_times, function(list) { mean(list$V1)}))
 
 getRepositoryData <- function(usesAsats)
 {
@@ -106,6 +109,18 @@ retrieveWarningCounts <- function()
   return(list)
 }
 
+retrieveSolveTimes <- function()
+{
+  files <- list.files(path="results/solve_time_per_category", pattern="*.csv", full.names=TRUE, recursive=TRUE)
+  list <- lapply(files, function(x) {
+    read.table(x)
+  })
+  names(list) <- lapply(files, function(x) {
+    file_path_sans_ext(basename(x))
+  })
+  return(list)
+}
+
 plotWarningCounts <- function()
 {
   setEPS()
@@ -115,4 +130,18 @@ plotWarningCounts <- function()
     plot(repository$warnings_count, type="l", xlab="Commit", ylab="Warning count", main=name)
     dev.off()
   }, warning_counts, names(warning_counts))
+}
+
+plotClassificationCounts <- function()
+{
+  par(mar = c(12, 4, 4, 2) + 0.1)
+  barplot(classification_counts$V2 / 100000, names.arg = classification_counts$V1, las = 2, ylab = "Number of warnings (x100,000)")
+  par(mar = c(5, 4, 4, 2) + 0.1)
+}
+
+plotSolvetimes <- function()
+{
+  par(mar = c(12, 4, 4, 2) + 0.1)
+  barplot(sort(solve_time_means, decreasing = TRUE), las = 2, ylab = "Average number of commits to solve")
+  par(mar = c(5, 4, 4, 2) + 0.1)
 }
