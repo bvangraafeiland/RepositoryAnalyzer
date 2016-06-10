@@ -76,7 +76,7 @@ return [
             'src' => ['plugin/*.py', 'pythonx/UltiSnips', 'plugin/UltiSnips', 'plugin/PySnipEmu']
         ],
         'cython/cython' => [
-            'src' => ['Tools/*.py', 'Demos/*.py']
+            'src' => ['Cython', 'pyximport', 'Tools/*.py', 'Demos/*.py']
         ],
         'rembo10/headphones' => [
             'src' => ['contrib/*.py', 'headphones', 'Headphones.py']

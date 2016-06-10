@@ -1,6 +1,7 @@
 <?php
 namespace App\Commands;
 
+use App\Export\AnalyzedRepositoryStatsExporter;
 use App\Export\BasicDataExporter;
 use App\Export\PullRequestDataExporter;
 use App\Export\RepositoryDataExporter;
@@ -37,5 +38,7 @@ class ExportDataCommand extends Command
             (new BasicDataExporter)->export();
         if ($category == 'solve_times')
             (new SolveTimeCombiner)->export();
+        if ($category == 'analyzed_repositories')
+            (new AnalyzedRepositoryStatsExporter)->export();
     }
 }

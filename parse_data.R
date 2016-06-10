@@ -1,5 +1,6 @@
 library(ggplot2)
 library(tools)
+library(rjson)
 
 language_distribution <- read.csv("results/basic_data.csv", row.names=1)
 repository_data <- read.csv("results/repository_data.csv", row.names=1)
@@ -22,12 +23,17 @@ getPullRequestData <- function(usesAsats)
 
 getRepositoryAttribute <- function(attribute, usesAsats)
 {
-  return(getRepositoryData(usesAsats)[attribute])
+  return(getRepositoryData(usesAsats)[,attribute])
 }
 
 getPullRequestAttribute <- function(attribute, usesAsats)
 {
-  return(getPullRequestData(usesAsats)[attribute])
+  return(getPullRequestData(usesAsats)[,attribute])
+}
+
+getMeanAge <- function(language)
+{
+  mean(repository_data[repository_data$language == language,]$age)
 }
 
 repositoryDataSubset <- function(property)
@@ -81,20 +87,20 @@ plotTimeToClose <- function()
   makeBoxplot(pull_request_stats, "time_to_close", "Average time to close pull requests (seconds)")
 }
 
-analyzeRepositoryAttribute <- function(attribute)
+analyzeRepositoryAttribute <- function(attribute, alternative = "two.sided")
 {
   noAsats <- getRepositoryAttribute(attribute, 0)
   asats <- getRepositoryAttribute(attribute, 1)
 
-  t.test(noAsats, asats)
+  wilcox.test(noAsats, asats, alternative = alternative)
 }
 
-analyzePullRequestAttribute <- function(attribute)
+analyzePullRequestAttribute <- function(attribute, alternative = "two.sided")
 {
   noAsats <- getPullRequestAttribute(attribute, 0)
   asats <- getPullRequestAttribute(attribute, 1)
 
-  t.test(noAsats, asats)
+  wilcox.test(noAsats, asats, alternative = alternative)
 }
 
 retrieveWarningCounts <- function()
@@ -123,10 +129,10 @@ retrieveSolveTimes <- function()
 
 plotWarningCounts <- function()
 {
-  setEPS()
+  # setEPS()
   mapply(function(repository, name) {
-    # png(paste("graphs/", name, ".png", sep = ""))
-    postscript(paste("graphs/", name, ".eps", sep = ""))
+    png(paste("graphs/", name, ".png", sep = ""))
+    # postscript(paste("graphs/", name, ".eps", sep = ""))
     plot(repository$warnings_count, type="l", xlab="Commit", ylab="Warning count", main=name)
     dev.off()
   }, warning_counts, names(warning_counts))
