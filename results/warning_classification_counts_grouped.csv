@@ -1,0 +1,18 @@
+Category,Java,Python,JavaScript,Ruby
+Best Practices,160847,901067,7715,3978
+Code Structure,48,881426,0,0
+Concurrency,1804,0,0,0
+Documentation Conventions,1320,211195,0,0
+Error Handling,32819,53348,0,7730
+Interface,2044,622438,0,144
+Logic,3963,2696373,20182,47
+Metric,11990,1513522,53976,42655
+Migration,178,23528,0,10969
+Naming Conventions,18571,836061,12,432
+Object Oriented Design,3790,0,0,0
+Redundancies,47611,1054513,1178,16451
+Regular Expressions,30345,0,0,0
+Resource,719,51643,37611,1429
+Simplifications,2383,27574,179,1254
+Style Conventions,72761,1702080,521410,37748
+Tool Specific,0,132334,0,0

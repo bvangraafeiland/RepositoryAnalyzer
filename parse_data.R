@@ -8,6 +8,7 @@ pull_request_stats <- read.csv("results/pull_request_data.csv", row.names=1)
 asat_prevalence <- read.csv("results/asat_prevalence.csv", header = FALSE)
 warning_counts <- retrieveWarningCounts()
 classification_counts <- read.csv("results/warning_classification_counts.csv", header = FALSE)
+classification_counts_grouped <- read.csv("results/warning_classification_counts_grouped.csv", header = TRUE, row.names = 1)
 solve_times <- retrieveSolveTimes()
 solve_time_means <- unlist(lapply(solve_times, function(list) { mean(list$V1)}))
 
@@ -142,6 +143,14 @@ plotClassificationCounts <- function()
 {
   par(mar = c(12, 4, 4, 2) + 0.1)
   barplot(classification_counts$V2 / 100000, names.arg = classification_counts$V1, las = 2, ylab = "Number of warnings (x100,000)")
+  par(mar = c(5, 4, 4, 2) + 0.1)
+}
+
+plotClassificationCountsFor <- function(language)
+{
+  counts <- classification_counts_grouped[order(classification_counts_grouped[language], decreasing = TRUE),][language]
+  par(mar = c(12, 4, 4, 2) + 0.1)
+  barplot(counts[,] / 100000, names.arg = row.names(counts), las = 2, ylab = "Number of warnings (x100,000)")
   par(mar = c(5, 4, 4, 2) + 0.1)
 }
 
