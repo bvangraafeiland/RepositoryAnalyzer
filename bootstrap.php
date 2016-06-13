@@ -1,4 +1,5 @@
 <?php
+use App\Commands\AddCodeToWarningsCommand;
 use App\Commands\AddRepositoryCommand;
 use App\Commands\AnalyzePullRequestsCommand;
 use App\Commands\BatchExecuteCommand;
@@ -50,5 +51,6 @@ $application->addCommands([
     new ExportDataCommand,
     new ExportWarningCountsCommand,
     new UpdateWarningClassificationsCommand,
+    new AddCodeToWarningsCommand,
     new TinkerCommand
 ]);

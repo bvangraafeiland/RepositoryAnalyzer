@@ -7,10 +7,12 @@ repository_data <- read.csv("results/repository_data.csv", row.names=1)
 pull_request_stats <- read.csv("results/pull_request_data.csv", row.names=1)
 asat_prevalence <- read.csv("results/asat_prevalence.csv", header = FALSE)
 warning_counts <- retrieveWarningCounts()
+average_warning_counts <- read.csv("results/average_warning_counts.csv", header = TRUE, row.names = 1)
 classification_counts <- read.csv("results/warning_classification_counts.csv", header = FALSE)
 classification_counts_grouped <- read.csv("results/warning_classification_counts_grouped.csv", header = TRUE, row.names = 1)
 solve_times <- retrieveSolveTimes()
 solve_time_means <- unlist(lapply(solve_times, function(list) { mean(list$V1)}))
+solve_time_medians <- unlist(lapply(solve_times, function(list) { median(list$V1)}))
 
 getRepositoryData <- function(usesAsats)
 {
@@ -139,6 +141,11 @@ plotWarningCounts <- function()
   }, warning_counts, names(warning_counts))
 }
 
+plotWarningsPer100 <- function()
+{
+  plot(average_warning_counts$loc, average_warning_counts$warnings_per_100_loc, xlab = "Total lines of code", ylab = "Warning count per 100 lines of code")
+}
+
 plotClassificationCounts <- function()
 {
   par(mar = c(12, 4, 4, 2) + 0.1)
@@ -159,4 +166,36 @@ plotSolvetimes <- function()
   par(mar = c(12, 4, 4, 2) + 0.1)
   barplot(sort(solve_time_means, decreasing = TRUE), las = 2, ylab = "Average number of commits to solve")
   par(mar = c(5, 4, 4, 2) + 0.1)
+}
+
+plotSolvetimeMedians <- function()
+{
+  par(mar = c(12, 4, 4, 2) + 0.1)
+  barplot(tail(sort(solve_time_medians, decreasing = TRUE), -2), las = 2, ylab = "Median number of commits to solve")
+  par(mar = c(5, 4, 4, 2) + 0.1)
+}
+
+testWarningsAgainstTravis <- function()
+{
+  wilcox.test(warnings_per_100_loc ~ asat_in_travis, data=average_warning_counts)
+}
+
+getConsecutivePairs <- function(list)
+{
+  cbind(list[-length(list)], list[-1])
+}
+
+testSolveTimesPair <- function(row)
+{
+  pair <- getConsecutivePairs(names(sort(solve_time_means, decreasing = TRUE)))[row,]
+  first <- get(pair[1], solve_times)$V1
+  second <- get(pair[2], solve_times)$V1
+  wilcox.test(first, second)
+}
+
+testAllSolveTimesPairs <- function()
+{
+  lapply(1:(length(solve_time_means)-1), function(row) {
+    testSolveTimesPair(row)$p.value
+  })
 }

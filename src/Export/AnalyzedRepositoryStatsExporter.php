@@ -15,7 +15,7 @@ class AnalyzedRepositoryStatsExporter extends DataExporter
 {
     protected function getFileHeaders()
     {
-        return ['full_name', 'avg_warning_count', 'loc', 'warnings_per_100_loc'];
+        return ['full_name', 'asat_in_travis', 'avg_warning_count', 'loc', 'warnings_per_100_loc'];
     }
 
     protected function getItems()
@@ -26,12 +26,12 @@ class AnalyzedRepositoryStatsExporter extends DataExporter
 
         $this->countLinesOfCode($repositoryConfigs);
 
-        $averageWarningCounts = DB::table(DB::raw('(SELECT full_name, count(warnings.id) as warnings_count FROM repositories JOIN results ON repositories.id = results.repository_id LEFT JOIN warnings ON results.id = warnings.result_id GROUP BY results.id) AS warning_counts'))->groupBy('full_name')->orderBy('avg_warning_count', 'desc')->get(['full_name', DB::raw('AVG(warnings_count) as avg_warning_count')]);
+        $averageWarningCounts = DB::table(DB::raw('(SELECT full_name, asat_in_travis, count(warnings.id) as warnings_count FROM repositories JOIN results ON repositories.id = results.repository_id LEFT JOIN warnings ON results.id = warnings.result_id GROUP BY results.id) AS warning_counts'))->groupBy('full_name', 'asat_in_travis')->orderBy('avg_warning_count', 'desc')->get(['full_name', 'asat_in_travis', DB::raw('ROUND(AVG(warnings_count), 2) as avg_warning_count')]);
 
         return collect($averageWarningCounts)->map(function ($result) use ($repositoryLanguages) {
             $language = $repositoryLanguages[$result->full_name];
             $loc = $this->getLoc($result->full_name, $language);
-            $warnings_per_100_loc =  ($result->avg_warning_count / $loc) * 100;
+            $warnings_per_100_loc = round(($result->avg_warning_count / $loc) * 100, 2);
             return (array) $result + compact('loc', 'warnings_per_100_loc');
         })->sortByDesc('warnings_per_100_loc');
     }

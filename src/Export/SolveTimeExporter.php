@@ -35,7 +35,7 @@ class SolveTimeExporter
         foreach ($repository->results as $result) {
             $warnings = collect(DB::table('warnings')->where('result_id', $result->id)->get());
             $currentSet = $warnings->map(function ($warning) {
-                return "$warning->classification_id:" . $warning->file . $warning->column . $warning->rule . $warning->message;
+                return "$warning->classification_id:" . $warning->file . $warning->rule . $warning->code;
             })->all();
 
             if (is_null($initialWarnings)) {

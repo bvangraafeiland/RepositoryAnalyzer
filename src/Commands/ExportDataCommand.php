@@ -7,7 +7,6 @@ use App\Export\PullRequestDataExporter;
 use App\Export\RepositoryDataExporter;
 use App\Export\SolveTimeCombiner;
 use App\Export\SolveTimeExporter;
-use App\Repository;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -37,6 +36,8 @@ class ExportDataCommand extends Command
         if ($category == 'basic')
             (new BasicDataExporter)->export();
         if ($category == 'solve_times')
+            (new SolveTimeExporter)->export();
+        if ($category == 'combined_solve_times')
             (new SolveTimeCombiner)->export();
         if ($category == 'analyzed_repositories')
             (new AnalyzedRepositoryStatsExporter)->export();
