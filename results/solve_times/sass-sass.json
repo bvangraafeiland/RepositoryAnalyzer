@@ -1,1 +1,1 @@
-{"16":[4],"14":[67,1]}
+{"16":[{"warning":"16:lib\/sass\/exec\/sass_convert.rb:ParenthesesAroundCondition:if (file.respond_to?(:read))","count":4,"result_id":5045}],"14":[{"warning":"14:lib\/sass\/util.rb:UnneededDisable:#   rubocop:disable ModuleLength","count":67,"result_id":4988},{"warning":"14:lib\/sass\/script\/parser.rb:RedundantReturn:return expr.value.is_a?(Script::Value::Number) ||","count":1,"result_id":4894}]}

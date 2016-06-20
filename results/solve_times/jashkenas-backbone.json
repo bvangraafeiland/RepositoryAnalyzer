@@ -1,1 +1,1 @@
-{"14":[4]}
+{"14":[{"warning":"14:backbone.js:no-extra-parens:var root = (typeof self == 'object' && self.self == self && self) ||","count":2,"result_id":8608},{"warning":"14:backbone.js:no-extra-parens:(typeof global == 'object' && global.global == global && global);","count":2,"result_id":8608},{"warning":"14:backbone.js:no-extra-parens:models = singular ? (models ? [models] : []) : models.slice();","count":4,"result_id":8606}]}

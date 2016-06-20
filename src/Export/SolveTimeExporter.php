@@ -17,7 +17,8 @@ class SolveTimeExporter
         $repositories = Repository::has('results')->with(['results' => function ($query) {
             $query->orderBy('id', 'desc');
         }])->get()->filter(function (Repository $repository) {
-            return !file_exists($this->getFileLocation($repository));
+            return true;
+            //return !file_exists($this->getFileLocation($repository));
         });
 
         foreach ($repositories as $repository) {
@@ -35,7 +36,7 @@ class SolveTimeExporter
         foreach ($repository->results as $result) {
             $warnings = collect(DB::table('warnings')->where('result_id', $result->id)->get());
             $currentSet = $warnings->map(function ($warning) {
-                return "$warning->classification_id:" . $warning->file . $warning->rule . $warning->code;
+                return implode(':', [$warning->classification_id, $warning->file, $warning->rule, $this->getUniquePart($warning)]);
             })->all();
 
             if (is_null($initialWarnings)) {
@@ -45,19 +46,38 @@ class SolveTimeExporter
             // check if warnings have been solved
             foreach ($warningsPresent as $warning => $count) {
                 if (!in_array($warning, $currentSet)) {
-                    $parts = explode(':', $warning);
-                    $solveTimes[$parts[0]][] = $count;
+                    if ($count < $repository->results->count()) {
+                        // invalid if solved after more than total count
+                        $parts = explode(':', $warning);
+                        $result_id = $result->id;
+                        $solveTimes[$parts[0]][] = compact('warning', 'count', 'result_id');
+                    }
                     unset($warningsPresent[$warning]);
                 }
             }
 
             // increase counts
             foreach (array_diff($currentSet, $initialWarnings) as $warning) {
-                $warningsPresent[$warning] = array_get($warningsPresent, $warning, 0) + 1;
+                $currentCount = array_get($warningsPresent, $warning, 0);
+                $warningsPresent[$warning] = $currentCount + 1;
             }
         }
 
         return $solveTimes;
+    }
+
+    protected function getUniquePart($warning)
+    {
+        $uniquePart = $warning->code ?: $warning->line;
+        if ($warning->rule == 'unused-wildcard-import') {
+            $uniquePart .= $warning->message;
+        }
+
+        if ($warning->rule == 'AvoidCatchingGenericException') {
+            $uniquePart .= $warning->line;
+        }
+
+        return $uniquePart;
     }
 
     protected function writeToFile(Repository $repository, array $solveTimes)

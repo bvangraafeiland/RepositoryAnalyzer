@@ -1,1 +1,1 @@
-{"7":[65,65,65],"16":[1]}
+{"7":[{"warning":"7:test\/unit\/deferred.js:W117:fulfilledStandardPromise: Promise.resolve( 1 ),","count":65,"result_id":10340},{"warning":"7:test\/unit\/deferred.js:W117:rejectedStandardPromise: Promise.reject( 0 )","count":65,"result_id":10340},{"warning":"7:test\/unit\/deferred.js:W117:return Promise.resolve( \"std deferred\" );","count":65,"result_id":10340}],"16":[{"warning":"16:test\/unit\/core.js:W033:return","count":1,"result_id":10178}]}

@@ -18,7 +18,8 @@ class SolveTimeCombiner
         })->map(function ($file) {
             return json_decode(file_get_contents(PROJECT_DIR . "/results/solve_times/$file"), true);
         })->reduce(function ($carry, $projectTimes) {
-            foreach ($projectTimes as $classificationId => $solveTimes) {
+            foreach ($projectTimes as $classificationId => $warnings) {
+                $solveTimes = collect($warnings)->pluck('count')->all();
                 $carry[$classificationId] = array_merge(array_get($carry, $classificationId, []), $solveTimes);
             }
             return $carry;

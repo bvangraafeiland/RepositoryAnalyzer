@@ -1,1 +1,1 @@
-{"16":[14,8,8]}
+{"16":[{"warning":"16:spec\/lib\/capistrano\/configuration\/server_spec.rb:MultilineHashBraceLayout:{ ssh_options: {","count":14,"result_id":223},{"warning":"16:lib\/capistrano\/configuration.rb:SpaceAfterColon:def install_plugin(plugin, load_hooks:true)","count":8,"result_id":223},{"warning":"16:lib\/capistrano\/configuration\/plugin_installer.rb:SpaceAfterColon:def install(plugin, load_hooks:true)","count":8,"result_id":223}]}
