@@ -7,6 +7,7 @@ use App\Commands\CheckRateLimitCommand;
 use App\Commands\CloneRepositoryCommand;
 use App\Commands\ExportDataCommand;
 use App\Commands\ExportWarningCountsCommand;
+use App\Commands\GetCategorySolveTimesCommand;
 use App\Commands\ProcessProjectsCommand;
 use App\Commands\RunAsatCommand;
 use App\Commands\SearchRepositoriesCommand;
@@ -52,5 +53,6 @@ $application->addCommands([
     new ExportWarningCountsCommand,
     new UpdateWarningClassificationsCommand,
     new AddCodeToWarningsCommand,
-    new TinkerCommand
+    new TinkerCommand,
+    new GetCategorySolveTimesCommand
 ]);

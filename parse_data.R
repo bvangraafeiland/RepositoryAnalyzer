@@ -13,6 +13,9 @@ classification_counts_grouped <- read.csv("results/warning_classification_counts
 solve_times <- retrieveSolveTimes()
 solve_time_means <- unlist(lapply(solve_times, function(list) { mean(list$V1)}))
 solve_time_medians <- unlist(lapply(solve_times, function(list) { median(list$V1)}))
+normalized_solve_times <- retrieveNormalizedSolveTimes()
+normalized_solve_time_means <- unlist(lapply(normalized_solve_times, function(list) { mean(list$V1)}))
+normalized_solve_time_medians <- unlist(lapply(normalized_solve_times, function(list) { median(list$V1)}))
 
 getRepositoryData <- function(usesAsats)
 {
@@ -34,9 +37,11 @@ getPullRequestAttribute <- function(attribute, usesAsats)
   return(getPullRequestData(usesAsats)[,attribute])
 }
 
-getMeanAge <- function(language)
+testRepositoryAge <- function(language)
 {
-  mean(repository_data[repository_data$language == language,]$age)
+  data <- repository_data[repository_data$language == language,]
+  
+  wilcox.test(age ~ uses_asats, data = data)
 }
 
 repositoryDataSubset <- function(property)
@@ -120,7 +125,19 @@ retrieveWarningCounts <- function()
 
 retrieveSolveTimes <- function()
 {
-  files <- list.files(path="results/solve_time_per_category", pattern="*.csv", full.names=TRUE, recursive=TRUE)
+  files <- list.files(path="results/solve_time_per_category_filtered", pattern="*.csv", full.names=TRUE, recursive=TRUE)
+  list <- lapply(files, function(x) {
+    read.table(x)
+  })
+  names(list) <- lapply(files, function(x) {
+    file_path_sans_ext(basename(x))
+  })
+  return(list)
+}
+
+retrieveNormalizedSolveTimes <- function()
+{
+  files <- list.files(path="results/solve_times_per_category_normalized", pattern="*.csv", full.names=TRUE, recursive=TRUE)
   list <- lapply(files, function(x) {
     read.table(x)
   })
@@ -155,7 +172,7 @@ plotClassificationCounts <- function()
 
 plotClassificationCountsFor <- function(language)
 {
-  counts <- classification_counts_grouped[order(classification_counts_grouped[language], decreasing = TRUE),][language]
+  counts <- classification_counts_grouped[language]
   par(mar = c(12, 4, 4, 2) + 0.1)
   barplot(counts[,] / 100000, names.arg = row.names(counts), las = 2, ylab = "Number of warnings (x100,000)")
   par(mar = c(5, 4, 4, 2) + 0.1)
@@ -164,14 +181,14 @@ plotClassificationCountsFor <- function(language)
 plotSolvetimes <- function()
 {
   par(mar = c(12, 4, 4, 2) + 0.1)
-  barplot(sort(solve_time_means, decreasing = TRUE), las = 2, ylab = "Average number of commits to solve")
+  barplot(sort(normalized_solve_time_means, decreasing = TRUE), las = 2, ylab = "Average number of commits to solve")
   par(mar = c(5, 4, 4, 2) + 0.1)
 }
 
 plotSolvetimeMedians <- function()
 {
   par(mar = c(12, 4, 4, 2) + 0.1)
-  barplot(tail(sort(solve_time_medians, decreasing = TRUE), -2), las = 2, ylab = "Median number of commits to solve")
+  barplot(tail(sort(normalized_solve_time_medians, decreasing = TRUE), -1), las = 2, ylab = "Median number of commits to solve")
   par(mar = c(5, 4, 4, 2) + 0.1)
 }
 
@@ -187,15 +204,36 @@ getConsecutivePairs <- function(list)
 
 testSolveTimesPair <- function(row)
 {
-  pair <- getConsecutivePairs(names(sort(solve_time_means, decreasing = TRUE)))[row,]
-  first <- get(pair[1], solve_times)$V1
-  second <- get(pair[2], solve_times)$V1
+  pair <- getConsecutivePairs(names(sort(normalized_solve_time_means, decreasing = TRUE)))[row,]
+  first <- get(pair[1], normalized_solve_times)$V1
+  second <- get(pair[2], normalized_solve_times)$V1
   wilcox.test(first, second)
 }
 
 testAllSolveTimesPairs <- function()
 {
-  lapply(1:(length(solve_time_means)-1), function(row) {
-    testSolveTimesPair(row)$p.value
+  pairs <- getConsecutivePairs(names(sort(normalized_solve_time_means, decreasing = TRUE)))
+  numPairs <- length(pairs) / 2
+  
+  testResults <- lapply(1:numPairs, function(row) {
+    testSolveTimesPair(row)
   })
+  pValues <- lapply(testResults, function (result) {
+    result$p.value
+  })
+  uValues <- lapply(testResults, function (result) {
+    as.numeric(result$statistic)
+  })
+  setSizes <- lapply(1:numPairs, function(row) {
+    firstSize <- length(get(pairs[row,1], normalized_solve_times)$V1)
+    secondSize <- length(get(pairs[row,2], normalized_solve_times)$V1)
+    paste(firstSize, secondSize, sep = " and ")
+  })
+  categoryPairs <- lapply(1:numPairs, function(row) {
+    paste(pairs[row,1], pairs[row,2], sep = " and ")
+  })
+  
+  result <- data.frame(matrix(c(categoryPairs, pValues, uValues, setSizes), length(testResults)))
+  names(result) <- c("Categories", "p-value", "U-value", "Sample sizes")
+  return(result)
 }
