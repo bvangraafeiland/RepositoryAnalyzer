@@ -2,11 +2,14 @@
 use App\Commands\AddCodeToWarningsCommand;
 use App\Commands\AddRepositoryCommand;
 use App\Commands\AnalyzePullRequestsCommand;
+use App\Commands\AverageTimesPerProjectCommand;
 use App\Commands\BatchExecuteCommand;
 use App\Commands\CheckRateLimitCommand;
 use App\Commands\CloneRepositoryCommand;
+use App\Commands\CountProjectsPerCategoryCommand;
 use App\Commands\ExportDataCommand;
 use App\Commands\ExportWarningCountsCommand;
+use App\Commands\GenerateSolveTimesTableCommand;
 use App\Commands\GetCategorySolveTimesCommand;
 use App\Commands\ProcessProjectsCommand;
 use App\Commands\RunAsatCommand;
@@ -54,5 +57,8 @@ $application->addCommands([
     new UpdateWarningClassificationsCommand,
     new AddCodeToWarningsCommand,
     new TinkerCommand,
-    new GetCategorySolveTimesCommand
+    new GetCategorySolveTimesCommand,
+    new GenerateSolveTimesTableCommand,
+    new CountProjectsPerCategoryCommand(),
+    new AverageTimesPerProjectCommand(),
 ]);

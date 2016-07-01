@@ -53,3 +53,22 @@ function cloneRepository(Repository $repository) {
 function absoluteRepositoriesDir() {
     return getenv('HOME') . '/' . getenv('REPOSITORIES_DIR');
 }
+
+function array_median(array $array) {
+    // perhaps all non numeric values should filtered out of $array here?
+    $arraySize = count($array);
+    if ($arraySize == 0) {
+        throw new LengthException('Median of an empty array is undefined');
+    }
+    // if we're down here it must mean $array
+    // has at least 1 item in the array.
+    $center = (int) floor($arraySize / 2);
+
+    sort($array, SORT_NUMERIC);
+    $median = $array[$center]; // assume an odd # of items
+    // Handle the even case by averaging the middle 2 items
+    if ($arraySize % 2 == 0) {
+        $median = ($median + $array[$center - 1]) / 2;
+    }
+    return $median;
+}

@@ -178,17 +178,17 @@ plotClassificationCountsFor <- function(language)
   par(mar = c(5, 4, 4, 2) + 0.1)
 }
 
-plotSolvetimes <- function()
+plotSolvetimes <- function(times)
 {
   par(mar = c(12, 4, 4, 2) + 0.1)
-  barplot(sort(normalized_solve_time_means, decreasing = TRUE), las = 2, ylab = "Average number of commits to solve")
+  barplot(sort(times, decreasing = TRUE), las = 2, ylab = "Average number of commits to solve")
   par(mar = c(5, 4, 4, 2) + 0.1)
 }
 
-plotSolvetimeMedians <- function()
+plotSolvetimeMedians <- function(times)
 {
   par(mar = c(12, 4, 4, 2) + 0.1)
-  barplot(tail(sort(normalized_solve_time_medians, decreasing = TRUE), -1), las = 2, ylab = "Median number of commits to solve")
+  barplot(tail(sort(times, decreasing = TRUE), -1), las = 2, ylab = "Median number of commits to solve")
   par(mar = c(5, 4, 4, 2) + 0.1)
 }
 
@@ -202,22 +202,23 @@ getConsecutivePairs <- function(list)
   cbind(list[-length(list)], list[-1])
 }
 
-testSolveTimesPair <- function(row)
+testSolveTimesPair <- function(firstCategory, secondCategory)
 {
-  pair <- getConsecutivePairs(names(sort(normalized_solve_time_means, decreasing = TRUE)))[row,]
-  first <- get(pair[1], normalized_solve_times)$V1
-  second <- get(pair[2], normalized_solve_times)$V1
-  wilcox.test(first, second)
+  first <- get(firstCategory, solve_times)$V1
+  second <- get(secondCategory, solve_times)$V1
+  wilcox.test(first, second, alternative = "less")
 }
 
 testAllSolveTimesPairs <- function()
 {
-  pairs <- getConsecutivePairs(names(sort(normalized_solve_time_means, decreasing = TRUE)))
-  numPairs <- length(pairs) / 2
+  categoryNames <- names(solve_times)
+  pairs <- expand.grid(categoryNames, categoryNames)
+  numPairs = length(pairs$Var1)
   
   testResults <- lapply(1:numPairs, function(row) {
-    testSolveTimesPair(row)
+    testSolveTimesPair(as.character(pairs[row,]$Var1), as.character(pairs[row,]$Var2))
   })
+  
   pValues <- lapply(testResults, function (result) {
     result$p.value
   })
@@ -225,12 +226,12 @@ testAllSolveTimesPairs <- function()
     as.numeric(result$statistic)
   })
   setSizes <- lapply(1:numPairs, function(row) {
-    firstSize <- length(get(pairs[row,1], normalized_solve_times)$V1)
-    secondSize <- length(get(pairs[row,2], normalized_solve_times)$V1)
-    paste(firstSize, secondSize, sep = " and ")
+    firstSize <- length(get(as.character(pairs[row,]$Var1), solve_times)$V1)
+    secondSize <- length(get(as.character(pairs[row,]$Var2), solve_times)$V1)
+    paste(firstSize, secondSize, sep = ";")
   })
   categoryPairs <- lapply(1:numPairs, function(row) {
-    paste(pairs[row,1], pairs[row,2], sep = " and ")
+    paste(pairs[row,]$Var1, pairs[row,]$Var2, sep = ";")
   })
   
   result <- data.frame(matrix(c(categoryPairs, pValues, uValues, setSizes), length(testResults)))
